@@ -156,7 +156,7 @@ button:not(.alt):active{box-shadow:0 2px 6px rgba(255,90,31,.2)}
 .finish-hero h1{font-size:32px;font-weight:800;letter-spacing:-.03em;color:#fff;-webkit-text-fill-color:#fff;margin:6px 0}
 .finish-hero p{opacity:.95;margin:6px 0 0;font-size:15px}
 </style>
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="/RunCoach/manifest.json">
 <meta name="theme-color" content="#ff5a1f">
 </head><body><div id="app"></div><nav id="nav" style="display:none"></nav>
 <script>
@@ -1167,7 +1167,7 @@ function prof(){return `<h2>Profil</h2><div class="card"><b>${esc(S.user?.n)||''
 draw();
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(()=>{});
+    navigator.serviceWorker.register('/RunCoach/sw.js').catch(()=>{});
   });
 }
 </script></body></html>
