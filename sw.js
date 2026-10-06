@@ -1,5 +1,5 @@
 const CACHE_NAME = "runcoach-v1";
-const urlsToCache = ["/", "/index.html"];
+const urlsToCache = ["/RunCoach/", "/RunCoach/index.html"];
 
 self.addEventListener("install", event => {
   event.waitUntil(
