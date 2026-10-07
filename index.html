@@ -176,7 +176,7 @@ const SESS_RECO={
 };
 
 /* ============ ÉTAT ============ */
-let S={user:null,form:{lvl:'ref',dist:10,h:0,m:50,s:0,date:'',vma:'',goal:'10k',weeks:12,race:'',target:'',n:3,days:[1,3,6],km:20},plan:null,refs:[]};
+let S={user:null,form:{lvl:'ref',dist:10,h:0,m:50,s:0,date:'',vma:'',goal:'10k',weeks:12,race:'',target:'',n:3,days:[1,3,6],km:''},plan:null,refs:[]};
 let scr='splash',sel=null,tab='home',step=0;
 try{const x=localStorage.getItem('rc1');if(x)S=JSON.parse(x)}catch(e){}
 const save=()=>{try{localStorage.setItem('rc1',JSON.stringify(S))}catch(e){}};
@@ -212,12 +212,24 @@ function vmaFromRef(km,min,ageW){
 function level(){
   const f=S.form;
   if(f.lvl==='new')return null;
+  // VMA manuelle prioritaire
   if(f.vma)return +f.vma;
-  const min=f.h*60+f.m+f.s/60;if(!min)return null;
-  const age=f.date?Math.max(0,(Date.now()-new Date(f.date))/6048e5):0;
-  return vmaFromRef(f.dist,min,age);
+  // Sinon : moyenne pondérée des perfs
+  const refs=f.refs&&f.refs.length?f.refs:[];
+  if(!refs.length)return null;
+  const now=Date.now();
+  let sumW=0,sumV=0;
+  refs.forEach(r=>{
+    const min=r.h*60+r.m+r.s/60;
+    if(!min)return;
+    const ageW=r.date?Math.max(0,(now-new Date(r.date))/6048e5):0;
+    const vma=vmaFromRef(r.dist,min,ageW);
+    // Poids : 1 si < 30j, dégressif jusqu'à 0.5 à 180j
+    const w=Math.max(.5,1-Math.max(0,ageW-30)/300);
+    sumW+=w;sumV+=vma*w;
+  });
+  return sumW?r1(sumV/sumW):null;
 }
-const P=(vma,a,b)=>fmtP(vma*b)+'–'+fmtP(vma*a)+'/km';
 
 /* ============ DESCRIBE DÉBUTANT ============ */
 function describeDebutant(s,pl){
@@ -393,9 +405,20 @@ function describe(s,pl){
 function generate(){
   if(S.plan){S.old=S.old||[];S.plan.sessions.filter(x=>x.status==='done').forEach(x=>{if(!S.old.some(o=>o.date===x.date&&o.type===x.type))S.old.push({date:x.date,type:x.type,actKm:x.actKm,rpe:x.rpe,pain:x.pain,status:'done'})})}
   const f=S.form,vma=level(),beg=!vma;
+  if(f.km===''||f.km==null||isNaN(+f.km)){alert('Indique ton kilométrage hebdo actuel avant de générer.');return}
   let N=+f.weeks;
   const race=['10k','semi','marathon'].includes(f.goal);
-  let start=new Date();start.setDate(start.getDate()+((8-start.getDay())%7||7));start.setHours(0,0,0,0);
+  let start=new Date();
+const startOpt=S.form.startOpt||'next';
+if(startOpt==='today'){
+  // Aujourd'hui
+} else if(startOpt==='custom'&&S.form.startDate){
+  start=pd(S.form.startDate);
+} else {
+  // Lundi prochain (comportement par défaut)
+  start.setDate(start.getDate()+((8-start.getDay())%7||7));
+}
+start.setHours(0,0,0,0);
   let raceD=null;
   if(race&&f.race){const rd=pd(f.race),mr=new Date(rd);mr.setHours(0,0,0,0);mr.setDate(mr.getDate()-((rd.getDay()+6)%7));N=clamp(Math.round((mr-start)/6048e5)+1,4,32);start=new Date(mr);start.setDate(start.getDate()-(N-1)*7);raceD=rd}
   else if(race){raceD=new Date(start);raceD.setDate(raceD.getDate()+N*7-1)}
@@ -419,7 +442,7 @@ function generate(){
   const gm={reprise:peak*1.15,forme:Math.max(20,peak*1.25),progression:Math.max(30,peak*1.35),'10k':35,semi:55,marathon:75}[f.goal];
   const target=Math.min(cap,Math.max(gm*(race?nf*lf:1),peak));
   const PW=Math.max(1,B-Math.floor(B/4)-1),rate=Math.min(1.1,Math.pow(target/peak,1/PW));
-  plan.v=14;plan.target=r1(target);
+  plan.v=15;plan.target=r1(target);
   for(let w=0;w<N;w++){
     let vol;
     if(phases[w]==='Affûtage'){const i=w-(N-tap);vol=pk*({1:[.65],2:[.7,.5],3:[.75,.55,.4]}[tap][i])}
@@ -537,6 +560,25 @@ function setC(k,v){
   }
   draw();
 }
+  function setStartOpt(v){
+  S.form.startOpt=v;
+  save();draw();
+}
+  function addRef(){
+  if(!S.form.refs)S.form.refs=[];
+  S.form.refs.push({dist:10,h:0,m:50,s:0,date:''});
+  save();draw();
+}
+function delRef(i){
+  if(!S.form.refs||S.form.refs.length<=1)return;
+  S.form.refs.splice(i,1);
+  save();draw();
+}
+function setRef(i,k,v){
+  if(!S.form.refs)S.form.refs=[];
+  S.form.refs[i][k]=v;
+  save();draw();
+}
 function launchConfetti(){
   const colors=['#ff5a1f','#ff8a3d','#10b981','#3b82f6','#8b5cf6','#f59e0b'];
   for(let i=0;i<40;i++){
@@ -557,11 +599,37 @@ function draw(){
   if(scr==='splash'){h=`<div class="hero"><svg class="runner" viewBox="0 0 200 180" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><g stroke-width="5" opacity=".45"><path d="M10 70h34M2 95h40M16 120h28"/></g><circle cx="122" cy="34" r="13" fill="currentColor" stroke="none"/><path d="M114 54L97 104"/><path d="M110 64L134 80L152 66"/><path d="M108 66L84 76L72 98"/><path d="M97 104L128 114L118 146"/><path d="M97 104L72 124L46 114"/><path d="M20 160h160" stroke-width="4" opacity=".35"/></svg><h1>RunCoach</h1><p class="tag2">Ton objectif devient un plan qui s'adapte à toi.</p><div class="pts"><span>🎯 Plan sur mesure</span><span>📈 Ajusté à ton ressenti</span><span>🛟 Prudence douleur</span></div><button onclick="go(S.user?(S.plan?'main':'lvl'):'auth')">Commencer</button></div>`}
   else if(scr==='auth'){h=`<h1>Connexion</h1><p class="mut">Mode local : tes données restent sur cet appareil.</p><label>Prénom</label><input id="nm"><label>Email</label><input id="em" type="email"><button onclick="S.user={n:nm.value||'Coureur',e:em.value};save();go('lvl')">Continuer</button>`}
   else if(scr==='lvl'){h=`<h2>1/4 · Ton niveau</h2>${chips([['new','Je débute'],['ref',"J'ai une référence"]],f.lvl,'lvl')}<p class="mut">Débutant : protocole course/marche, progression par durée et RPE.</p><button onclick="go(S.form.lvl==='new'?'goal':'ref')">Suivant</button>`}
-  else if(scr==='ref'){h=`<h2>2/4 · Référence</h2><label>Distance</label>${chips([[5,'5 km'],[10,'10 km'],[21.1,'Semi'],[42.2,'Marathon']],f.dist,'dist')}
-  <div class="row">${[['h','h',6],['m','min',59],['s','s',59]].map(([k,l,n])=>`<div><label>${l}</label><select onchange="F('${k}',+this.value)">${Array.from({length:n+1},(_,i)=>`<option value="${i}" ${f[k]==i?'selected':''}>${String(i).padStart(2,'0')}</option>`).join('')}</select></div>`).join('')}</div>
-  <label>Date du chrono</label><input type="date" value="${f.date}" onchange="F('date',this.value)">
-  <label>Ou ta VMA connue / test VMA (km/h)</label><input type="number" step=".1" value="${f.vma}" oninput="F('vma',this.value)" placeholder="ex. 15.5">
-  <div class="card mut">Référence : <b>${{5:'5 km',10:'10 km',21.1:'Semi',42.2:'Marathon'}[f.dist]} en ${f.h}h${String(f.m).padStart(2,'0')}'${String(f.s).padStart(2,'0')}</b><br>VMA estimée : <b><span id="vm">${level()||'—'}</span> km/h</b></div><button onclick="go('goal')">Suivant</button>`}
+   else if(scr==='ref'){
+    if(!S.form.refs)S.form.refs=[{dist:10,h:0,m:50,s:0,date:''}];
+    const refs=S.form.refs;
+    const refRows=refs.map((r,i)=>`
+      <div class="card" style="padding:12px;margin:8px 0">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <b style="font-size:14px">Perf ${i+1}</b>
+          ${refs.length>1?`<span onclick="delRef(${i})" style="cursor:pointer;color:var(--ko);font-size:18px">🗑️</span>`:''}
+        </div>
+        <label>Distance</label>
+        <div class="chips">${[[5,'5 km'],[10,'10 km'],[21.1,'Semi'],[42.2,'Marathon']].map(([v,l])=>`<span class="chip ${r.dist==v?'on':''}" onclick="setRef(${i},'dist',${v})">${l}</span>`).join('')}</div>
+        <div class="row">
+          ${[['h','h',6],['m','min',59],['s','s',59]].map(([k,l,n])=>`<div><label>${l}</label><select onchange="setRef(${i},'${k}',+this.value)">${Array.from({length:n+1},(_,j)=>`<option value="${j}" ${r[k]==j?'selected':''}>${String(j).padStart(2,'0')}</option>`).join('')}</select></div>`).join('')}
+        </div>
+        <label>Date du chrono</label>
+        <input type="date" value="${r.date||''}" onchange="setRef(${i},'date',this.value)">
+      </div>`).join('');
+    const vmaMoy=level();
+    h=`<h2>2/4 · Références</h2>
+    <p class="mut">Ajoute une ou plusieurs perfs récentes. Plus tu en as, plus la VMA estimée sera fiable.</p>
+    ${refRows}
+    <button class="alt" onclick="addRef()" style="margin-top:4px">+ Ajouter une perf</button>
+    <label style="margin-top:16px">Ou ta VMA connue / test VMA (km/h) — prioritaire</label>
+    <input type="number" step=".1" value="${f.vma}" oninput="F('vma',this.value)" placeholder="ex. 15.5">
+    <div class="card" style="background:linear-gradient(135deg,rgba(255,90,31,.06),rgba(255,138,61,.03));border-color:rgba(255,90,31,.2);text-align:center">
+      <div class="kpi-sub">VMA estimée</div>
+      <div style="font-size:38px;font-weight:800;letter-spacing:-.03em;color:var(--ac);margin:4px 0">${vmaMoy||'—'}</div>
+      <div class="mut" style="font-size:12px">${f.vma?'VMA manuelle saisie':refs.length+' perf'+(refs.length>1?'s':'')+' pondérée'+(refs.length>1?'s':'')+' par fraîcheur'}</div>
+    </div>
+    <button onclick="go('goal')">Suivant</button>`;
+  }
   else if(scr==='goal'){
     const isBeg=level()===null;
     const lvl=isBeg?'beg':'conf';
@@ -590,7 +658,7 @@ function draw(){
     ${['10k','semi','marathon'].includes(f.goal)?`<label>Date de course (optionnel, remplace la durée)</label><input type="date" value="${f.race}" onchange="F('race',this.value)">${level()?`<label>Objectif chrono (optionnel)</label><div class="row">${[['th','h',6,Math.floor((+f.target||0)/60)],['tm','min',59,(+f.target||0)%60]].map(([k,l,n,c])=>`<div><label>${l}</label><select onchange="T('${k}',+this.value)">${Array.from({length:n+1},(_,i)=>`<option value="${i}" ${c==i?'selected':''}>${String(i).padStart(2,'0')}</option>`).join('')}</select></div>`).join('')}</div>`:''}`:''}
     <button onclick="go('dispo')">Suivant</button>`;
   }
-  else if(scr==='dispo'){
+    else if(scr==='dispo'){
     const isBeg=level()===null;
     const lvl=isBeg?'beg':'conf';
     const sess=SESS_RECO[lvl][f.goal]||[3,4];
@@ -609,15 +677,23 @@ function draw(){
       else b=' <span style="font-size:10px">⚠️</span>';
       return `<span class="chip ${n==x?'on':''}" onclick="setC('n','${x}')">${x}${b}</span>`;
     }).join('')+'</div>';
+    // Date de début
+    const startOpt=f.startOpt||'next';
+    const startChips=[['today','Aujourd\'hui'],['next','Lundi prochain'],['custom','Date au choix']];
+    const startSel='<div class="chips">'+startChips.map(([v,l])=>`<span class="chip ${startOpt===v?'on':''}" onclick="setStartOpt('${v}')">${l}</span>`).join('')+'</div>';
+    const customDate=startOpt==='custom'?`<label>Date de début</label><input type="date" value="${f.startDate||iso(new Date())}" onchange="F('startDate',this.value)">`:'';
     h=`<h2>4/4 · Disponibilités</h2>
-    <label>Kilométrage hebdo actuel</label><input type="number" value="${f.km}" oninput="F('km',+this.value)">
+    <label>Kilométrage hebdo actuel</label>
+<input type="number" min="0" value="${f.km}" placeholder="ex: 20" oninput="F('km',this.value===''?'':+this.value,true)">
     <label>Séances par semaine ${badge}</label>
     <div class="card mut" style="margin-top:0">${msg}</div>
     ${sessChips}${warn}${warn2}
     <label>Jours disponibles (${f.n} min. conseillés)</label>
     <div class="chips">${DAYS.map((d,i)=>`<span class="chip ${f.days.includes(i)?'on':''}" onclick="tg(${i})">${d}</span>`).join('')}</div>
-    <button onclick="go('gen')">Générer mon plan</button>`;
-  }
+    <label style="margin-top:16px">Quand commencer ?</label>
+    ${startSel}
+    ${customDate}
+    ${f.km===''||f.km==null?`<button class="alt" onclick="alert('Indique ton kilométrage hebdo actuel (0 si tu débutes)')" style="opacity:.6">Générer mon plan</button>`:`<button onclick="go('gen')">Générer mon plan</button>`}
   else if(scr==='gen'){
     generate();adaptAll();save();
     const dest=S.plan.beg&&!S.introSeen?'introDeb':'home';
