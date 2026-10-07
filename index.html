@@ -655,7 +655,7 @@ function draw(){
     <label style="margin-top:16px">Quand commencer ?</label>
     ${startSel}
     ${customDate}
-                <div id="genBtnWrap">
+    <div id="genBtnWrap">
       ${f.km===''||f.km==null?`<button class="alt" onclick="alert('Choisis ton kilométrage hebdo (même 0) avant de générer.')" style="opacity:.6">Générer mon plan</button>`:`<button onclick="go('gen')">Générer mon plan</button>`}
     </div>
   }
@@ -903,8 +903,8 @@ function detail(){
     ${s.hr?`<div class="crit"><span>FC moyenne</span><b>${s.hr} bpm</b></div>`:''}
     ${s.actMin?`<div class="crit"><span>Durée</span><b>${fmtDur(s.actMin)}</b></div>`:''}
   </div>`:'';
-  const editBlock=s.type!=='race'?`<div class="card" id="editCard">
-    <div class="acc-head" onclick="var el=document.getElementById('editCard');el.classList.toggle('acc-open')">
+ const editBlock=s.type!=='race'?`<div class="card" id="editCard">
+    <div class="acc-head" onclick="toggleEditCard()">
       <span>✏️ Modifier cette séance</span>
       <span class="acc-arrow">▾</span>
     </div>
@@ -946,6 +946,10 @@ const curS=()=>S.plan.sessions.find(x=>x.id===sel);
 function moveS(v){const s=curS();if(!v)return;s.date=v;const today=iso(new Date());if(s.status==='missed'&&v>=today)s.status='todo';else if(s.status==='todo'&&v<today)s.status='missed';save();draw()}
 function adjKm(d){const s=curS();s.km=Math.max(1,s.km+d);s.base=s.km;s.edited=true;save();draw()}
 function resetS(){const s=curS();s.status='todo';['rpe','pain','actKm','actMin','hr'].forEach(k=>delete s[k]);save();adaptAll();save();draw()}
+  function toggleEditCard(){
+  var el=document.getElementById('editCard');
+  if(el)el.classList.toggle('acc-open');
+}
 function painColor(v){
   if(v<=0)return '#10b981';
   if(v<=2)return '#22c55e';
