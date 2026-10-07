@@ -679,10 +679,20 @@ function draw(){
   else if(scr==='det'){h=detail()}
   else if(scr==='rpe'){R.ok=1;h=rpeForm()}
   if(['lvl','ref','goal','dispo'].includes(scr)){const b={lvl:S.plan?"setT('prof')":"go('auth')",ref:"go('lvl')",goal:S.form.lvl==='new'?"go('lvl')":"go('ref')",dispo:"go('goal')"}[scr];h=`<button class="alt" style="width:auto;margin:0 0 6px;padding:8px 14px" onclick="${b}">← Retour</button>`+h}
+    // Détecte si on change d'écran (pour n'animer que dans ce cas)
+  const prevScreen=window._lastScreen||'';
+  const newScreen=scr+(tab?'/'+tab:'');
+  const screenChanged=prevScreen!==newScreen;
+  window._lastScreen=newScreen;
+
   a.innerHTML=h;
-  a.style.animation='none';
-  void a.offsetWidth;
-  a.style.animation='fadeIn .3s ease';
+  if(screenChanged){
+    a.style.animation='none';
+    void a.offsetWidth;
+    a.style.animation='fadeIn .3s ease';
+  } else {
+    a.style.animation='none';
+  }
   if(window._scrollAnchorW!=null){
     const w=window._scrollAnchorW;window._scrollAnchorW=null;
     const cards=a.querySelectorAll('.card');
