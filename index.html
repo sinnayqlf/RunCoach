@@ -516,6 +516,27 @@ function setC(k,v){
   draw();
 }
 function setStartOpt(v){S.form.startOpt=v;save();draw()}
+  function onKmInput(el){
+  // Lit la valeur SANS redraw (garde le focus)
+  const v=el.value===''?'':Math.max(0,Math.min(100,+el.value||0));
+  S.form.km=v;
+  save();
+  // Met à jour l'état du bouton Générer sans redraw
+  const btnWrap=document.getElementById('genBtnWrap');
+  if(btnWrap){
+    const ok=v!==''&&v!=null&&!isNaN(+v);
+    btnWrap.innerHTML=ok
+      ?`<button onclick="go('gen')">Générer mon plan</button>`
+      :`<button class="alt" onclick="alert('Choisis ton kilométrage hebdo (même 0) avant de générer.')" style="opacity:.6">Générer mon plan</button>`;
+  }
+}
+function onKmBlur(el){
+  // Au blur, on redraw proprement (avec la valeur finale)
+  const v=el.value===''?'':Math.max(0,Math.min(100,+el.value||0));
+  S.form.km=v;
+  save();
+  draw();
+}
 function addRef(){if(!S.form.refs)S.form.refs=[];S.form.refs.push({dist:10,h:0,m:50,s:0,date:''});save();draw()}
 function delRef(i){if(!S.form.refs||S.form.refs.length<=1)return;S.form.refs.splice(i,1);save();draw()}
 function setRef(i,k,v){if(!S.form.refs)S.form.refs=[];S.form.refs[i][k]=v;save();draw()}
@@ -623,7 +644,9 @@ function draw(){
     const customDate=startOpt==='custom'?`<label>Date de début</label><input type="date" value="${f.startDate||iso(new Date())}" onchange="F('startDate',this.value)">`:'';
     h=`<h2>4/4 · Disponibilités</h2>
     <label>Kilométrage hebdo actuel</label>
-    <input type="number" min="0" value="${f.km}" placeholder="ex: 20" oninput="F('km',this.value===''?'':+this.value,true)">
+    <input type="number" min="0" max="100" value="${f.km}" placeholder="ex: 20" inputmode="numeric"
+      oninput="onKmInput(this)"
+      onblur="onKmBlur(this)">
     <label>Séances par semaine ${badge}</label>
     <div class="card mut" style="margin-top:0">${msg}</div>
     ${sessChips}${warn}${warn2}
@@ -632,8 +655,9 @@ function draw(){
     <label style="margin-top:16px">Quand commencer ?</label>
     ${startSel}
     ${customDate}
-    ${f.km===''||f.km==null?`<button class="alt" onclick="alert('Indique ton kilométrage hebdo actuel (0 si tu débutes)')" style="opacity:.6">Générer mon plan</button>`:`<button onclick="go('gen')">Générer mon plan</button>`}`;
-  }
+        <div id="genBtnWrap">
+      ${f.km===''||f.km==null?`<button class="alt" onclick="alert('Choisis ton kilométrage hebdo (même 0) avant de générer.')" style="opacity:.6">Générer mon plan</button>`:`<button onclick="go('gen')">Générer mon plan</button>`}
+    </div>
   else if(scr==='gen'){
     generate();adaptAll();save();
     const dest=S.plan.beg&&!S.introSeen?'introDeb':'home';
