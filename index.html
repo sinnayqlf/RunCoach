@@ -77,55 +77,23 @@ nav a.on::before{content:'';position:absolute;top:0;left:50%;transform:translate
 .pill.ok{background:rgba(16,185,129,.15);color:var(--ok)}
 .pill.ko{background:rgba(239,68,68,.15);color:var(--ko)}
 .pill.warn{background:rgba(245,158,11,.15);color:var(--warn)}
-/* Sticky footer pour le détail */
 .sticky-bar{position:sticky;bottom:calc(64px + env(safe-area-inset-bottom,0px));padding:8px 0;background:linear-gradient(180deg,transparent,var(--bg) 30%);margin-top:-20px;z-index:10}
-/* Hero type séance */
 .det-hero{padding:22px 20px;border-radius:var(--radius);margin:12px 0;position:relative;overflow:hidden}
 .det-hero .big{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1}
 .det-hero .lbl{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.8}
-/* Badge durée */
 .dur-badge{display:inline-block;font-size:13px;padding:5px 12px;border-radius:100px;background:rgba(255,255,255,.25);font-weight:600;backdrop-filter:blur(10px)}
-/* Accordéon modifier */
 .acc-head{display:flex;justify-content:space-between;align-items:center;cursor:pointer;padding:12px 0;-webkit-tap-highlight-color:transparent;font-weight:600}
 .acc-body{display:none;padding-top:8px}
 .acc-open .acc-body{display:block}
 .acc-open .acc-arrow{transform:rotate(180deg)}
 .acc-arrow{transition:transform .2s;color:var(--mut)}
-/* Sliders stylisés */
-input[type="range"]{
-  -webkit-appearance:none;appearance:none;
-  width:100%;height:32px;background:transparent;
-  margin:6px 0 4px;padding:0;
-  --fill:0%;
-  --bar:#ff5a1f;
-}
-input[type="range"]::-webkit-slider-runnable-track{
-  height:10px;border-radius:5px;
-  background:linear-gradient(90deg,var(--bar),var(--bar)) no-repeat,var(--ln);
-  background-size:var(--fill) 100%;
-  transition:background-size .1s ease;
-}
-input[type="range"]::-moz-range-track{
-  height:10px;border-radius:5px;background:var(--ln);
-}
-input[type="range"]::-moz-range-progress{
-  height:10px;border-radius:5px;background:var(--bar);
-}
-input[type="range"]::-webkit-slider-thumb{
-  -webkit-appearance:none;appearance:none;
-  width:24px;height:24px;border-radius:50%;
-  background:#fff;border:3px solid var(--bar);
-  box-shadow:0 2px 8px color-mix(in srgb,var(--bar) 40%,transparent);
-  margin-top:-7px;cursor:pointer;
-  transition:transform .12s;
-}
+input[type="range"]{-webkit-appearance:none;appearance:none;width:100%;height:32px;background:transparent;margin:6px 0 4px;padding:0;--fill:0%;--bar:#ff5a1f}
+input[type="range"]::-webkit-slider-runnable-track{height:10px;border-radius:5px;background:linear-gradient(90deg,var(--bar),var(--bar)) no-repeat,var(--ln);background-size:var(--fill) 100%;transition:background-size .1s ease}
+input[type="range"]::-moz-range-track{height:10px;border-radius:5px;background:var(--ln)}
+input[type="range"]::-moz-range-progress{height:10px;border-radius:5px;background:var(--bar)}
+input[type="range"]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid var(--bar);box-shadow:0 2px 8px color-mix(in srgb,var(--bar) 40%,transparent);margin-top:-7px;cursor:pointer;transition:transform .12s}
 input[type="range"]::-webkit-slider-thumb:active{transform:scale(1.15)}
-input[type="range"]::-moz-range-thumb{
-  width:24px;height:24px;border-radius:50%;
-  background:#fff;border:3px solid var(--bar);
-  box-shadow:0 2px 8px color-mix(in srgb,var(--bar) 40%,transparent);cursor:pointer;
-}
-/* Graphiques */
+input[type="range"]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:3px solid var(--bar);box-shadow:0 2px 8px color-mix(in srgb,var(--bar) 40%,transparent);cursor:pointer}
 .chart-card{padding:16px 12px 12px}
 .chart-svg{width:100%;height:auto;display:block;overflow:visible}
 .chart-svg .grid{stroke:var(--ln);stroke-width:1;stroke-dasharray:3 3}
@@ -139,18 +107,12 @@ input[type="range"]::-moz-range-thumb{
 .delta.up{background:rgba(255,90,31,.15);color:var(--ac)}
 .delta.down{background:rgba(16,185,129,.15);color:var(--ok)}
 .delta.flat{background:var(--ln);color:var(--mut)}
-/* Polish final */
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 #app>*{animation:fadeIn .3s ease}
 .card:active{transition:transform .1s}
 button:not(.alt):active{box-shadow:0 2px 6px rgba(255,90,31,.2)}
-/* Confetti */
 .confetti{position:fixed;top:-10px;width:10px;height:10px;pointer-events:none;z-index:9999;opacity:.9;animation:fall linear forwards}
-@keyframes fall{
-  0%{transform:translateY(-10px) rotate(0deg);opacity:1}
-  100%{transform:translateY(100vh) rotate(720deg);opacity:0}
-}
-/* Stat grid fin de plan */
+@keyframes fall{0%{transform:translateY(-10px) rotate(0deg);opacity:1}100%{transform:translateY(100vh) rotate(720deg);opacity:0}}
 .finish-hero{text-align:center;padding:30px 16px;background:linear-gradient(135deg,var(--ac),var(--ac2));border-radius:var(--radius);color:#fff;margin:12px 0}
 .finish-hero .emoji{font-size:64px;line-height:1;margin-bottom:8px;display:inline-block;animation:bob 1.4s ease-in-out infinite}
 .finish-hero h1{font-size:32px;font-weight:800;letter-spacing:-.03em;color:#fff;-webkit-text-fill-color:#fff;margin:6px 0}
@@ -176,9 +138,10 @@ const SESS_RECO={
 };
 
 /* ============ ÉTAT ============ */
-let S={user:null,form:{lvl:'ref',dist:10,h:0,m:50,s:0,date:'',vma:'',goal:'10k',weeks:12,race:'',target:'',n:3,days:[1,3,6],km:''},plan:null,refs:[]};
+let S={user:null,form:{lvl:'ref',dist:10,h:0,m:50,s:0,date:'',vma:'',goal:'10k',weeks:12,race:'',target:'',n:3,days:[1,3,6],km:'',refs:[{dist:10,h:0,m:50,s:0,date:''}],startOpt:'next',startDate:''},plan:null,refs:[]};
 let scr='splash',sel=null,tab='home',step=0;
 try{const x=localStorage.getItem('rc1');if(x)S=JSON.parse(x)}catch(e){}
+if(!S.form.refs)S.form.refs=[{dist:10,h:0,m:50,s:0,date:''}];
 const save=()=>{try{localStorage.setItem('rc1',JSON.stringify(S))}catch(e){}};
 
 /* ============ HELPERS ============ */
@@ -212,9 +175,7 @@ function vmaFromRef(km,min,ageW){
 function level(){
   const f=S.form;
   if(f.lvl==='new')return null;
-  // VMA manuelle prioritaire
   if(f.vma)return +f.vma;
-  // Sinon : moyenne pondérée des perfs
   const refs=f.refs&&f.refs.length?f.refs:[];
   if(!refs.length)return null;
   const now=Date.now();
@@ -224,7 +185,6 @@ function level(){
     if(!min)return;
     const ageW=r.date?Math.max(0,(now-new Date(r.date))/6048e5):0;
     const vma=vmaFromRef(r.dist,min,ageW);
-    // Poids : 1 si < 30j, dégressif jusqu'à 0.5 à 180j
     const w=Math.max(.5,1-Math.max(0,ageW-30)/300);
     sumW+=w;sumV+=vma*w;
   });
@@ -233,7 +193,7 @@ function level(){
 
 /* ============ DESCRIBE DÉBUTANT ============ */
 function describeDebutant(s,pl){
-  const w=s.w,N=pl.N,ph=pl.phases[w],goal=pl.goal;
+  const w=s.w,ph=pl.phases[w],goal=pl.goal;
   const isRace=['10k','semi','marathon'].includes(goal);
   const sw=w+1;
   if(s.type==='easy'){
@@ -409,16 +369,11 @@ function generate(){
   let N=+f.weeks;
   const race=['10k','semi','marathon'].includes(f.goal);
   let start=new Date();
-const startOpt=S.form.startOpt||'next';
-if(startOpt==='today'){
-  // Aujourd'hui
-} else if(startOpt==='custom'&&S.form.startDate){
-  start=pd(S.form.startDate);
-} else {
-  // Lundi prochain (comportement par défaut)
-  start.setDate(start.getDate()+((8-start.getDay())%7||7));
-}
-start.setHours(0,0,0,0);
+  const startOpt=f.startOpt||'next';
+  if(startOpt==='today'){}
+  else if(startOpt==='custom'&&f.startDate){start=pd(f.startDate)}
+  else{start.setDate(start.getDate()+((8-start.getDay())%7||7))}
+  start.setHours(0,0,0,0);
   let raceD=null;
   if(race&&f.race){const rd=pd(f.race),mr=new Date(rd);mr.setHours(0,0,0,0);mr.setDate(mr.getDate()-((rd.getDay()+6)%7));N=clamp(Math.round((mr-start)/6048e5)+1,4,32);start=new Date(mr);start.setDate(start.getDate()-(N-1)*7);raceD=rd}
   else if(race){raceD=new Date(start);raceD.setDate(raceD.getDate()+N*7-1)}
@@ -442,7 +397,7 @@ start.setHours(0,0,0,0);
   const gm={reprise:peak*1.15,forme:Math.max(20,peak*1.25),progression:Math.max(30,peak*1.35),'10k':35,semi:55,marathon:75}[f.goal];
   const target=Math.min(cap,Math.max(gm*(race?nf*lf:1),peak));
   const PW=Math.max(1,B-Math.floor(B/4)-1),rate=Math.min(1.1,Math.pow(target/peak,1/PW));
-  plan.v=15;plan.target=r1(target);
+  plan.v=16;plan.target=r1(target);
   for(let w=0;w<N;w++){
     let vol;
     if(phases[w]==='Affûtage'){const i=w-(N-tap);vol=pk*({1:[.65],2:[.7,.5],3:[.75,.55,.4]}[tap][i])}
@@ -560,25 +515,10 @@ function setC(k,v){
   }
   draw();
 }
-  function setStartOpt(v){
-  S.form.startOpt=v;
-  save();draw();
-}
-  function addRef(){
-  if(!S.form.refs)S.form.refs=[];
-  S.form.refs.push({dist:10,h:0,m:50,s:0,date:''});
-  save();draw();
-}
-function delRef(i){
-  if(!S.form.refs||S.form.refs.length<=1)return;
-  S.form.refs.splice(i,1);
-  save();draw();
-}
-function setRef(i,k,v){
-  if(!S.form.refs)S.form.refs=[];
-  S.form.refs[i][k]=v;
-  save();draw();
-}
+function setStartOpt(v){S.form.startOpt=v;save();draw()}
+function addRef(){if(!S.form.refs)S.form.refs=[];S.form.refs.push({dist:10,h:0,m:50,s:0,date:''});save();draw()}
+function delRef(i){if(!S.form.refs||S.form.refs.length<=1)return;S.form.refs.splice(i,1);save();draw()}
+function setRef(i,k,v){if(!S.form.refs)S.form.refs=[];S.form.refs[i][k]=v;save();draw()}
 function launchConfetti(){
   const colors=['#ff5a1f','#ff8a3d','#10b981','#3b82f6','#8b5cf6','#f59e0b'];
   for(let i=0;i<40;i++){
@@ -599,7 +539,7 @@ function draw(){
   if(scr==='splash'){h=`<div class="hero"><svg class="runner" viewBox="0 0 200 180" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><g stroke-width="5" opacity=".45"><path d="M10 70h34M2 95h40M16 120h28"/></g><circle cx="122" cy="34" r="13" fill="currentColor" stroke="none"/><path d="M114 54L97 104"/><path d="M110 64L134 80L152 66"/><path d="M108 66L84 76L72 98"/><path d="M97 104L128 114L118 146"/><path d="M97 104L72 124L46 114"/><path d="M20 160h160" stroke-width="4" opacity=".35"/></svg><h1>RunCoach</h1><p class="tag2">Ton objectif devient un plan qui s'adapte à toi.</p><div class="pts"><span>🎯 Plan sur mesure</span><span>📈 Ajusté à ton ressenti</span><span>🛟 Prudence douleur</span></div><button onclick="go(S.user?(S.plan?'main':'lvl'):'auth')">Commencer</button></div>`}
   else if(scr==='auth'){h=`<h1>Connexion</h1><p class="mut">Mode local : tes données restent sur cet appareil.</p><label>Prénom</label><input id="nm"><label>Email</label><input id="em" type="email"><button onclick="S.user={n:nm.value||'Coureur',e:em.value};save();go('lvl')">Continuer</button>`}
   else if(scr==='lvl'){h=`<h2>1/4 · Ton niveau</h2>${chips([['new','Je débute'],['ref',"J'ai une référence"]],f.lvl,'lvl')}<p class="mut">Débutant : protocole course/marche, progression par durée et RPE.</p><button onclick="go(S.form.lvl==='new'?'goal':'ref')">Suivant</button>`}
-   else if(scr==='ref'){
+  else if(scr==='ref'){
     if(!S.form.refs)S.form.refs=[{dist:10,h:0,m:50,s:0,date:''}];
     const refs=S.form.refs;
     const refRows=refs.map((r,i)=>`
@@ -658,7 +598,7 @@ function draw(){
     ${['10k','semi','marathon'].includes(f.goal)?`<label>Date de course (optionnel, remplace la durée)</label><input type="date" value="${f.race}" onchange="F('race',this.value)">${level()?`<label>Objectif chrono (optionnel)</label><div class="row">${[['th','h',6,Math.floor((+f.target||0)/60)],['tm','min',59,(+f.target||0)%60]].map(([k,l,n,c])=>`<div><label>${l}</label><select onchange="T('${k}',+this.value)">${Array.from({length:n+1},(_,i)=>`<option value="${i}" ${c==i?'selected':''}>${String(i).padStart(2,'0')}</option>`).join('')}</select></div>`).join('')}</div>`:''}`:''}
     <button onclick="go('dispo')">Suivant</button>`;
   }
-    else if(scr==='dispo'){
+  else if(scr==='dispo'){
     const isBeg=level()===null;
     const lvl=isBeg?'beg':'conf';
     const sess=SESS_RECO[lvl][f.goal]||[3,4];
@@ -677,14 +617,13 @@ function draw(){
       else b=' <span style="font-size:10px">⚠️</span>';
       return `<span class="chip ${n==x?'on':''}" onclick="setC('n','${x}')">${x}${b}</span>`;
     }).join('')+'</div>';
-    // Date de début
     const startOpt=f.startOpt||'next';
     const startChips=[['today','Aujourd\'hui'],['next','Lundi prochain'],['custom','Date au choix']];
     const startSel='<div class="chips">'+startChips.map(([v,l])=>`<span class="chip ${startOpt===v?'on':''}" onclick="setStartOpt('${v}')">${l}</span>`).join('')+'</div>';
     const customDate=startOpt==='custom'?`<label>Date de début</label><input type="date" value="${f.startDate||iso(new Date())}" onchange="F('startDate',this.value)">`:'';
     h=`<h2>4/4 · Disponibilités</h2>
     <label>Kilométrage hebdo actuel</label>
-<input type="number" min="0" value="${f.km}" placeholder="ex: 20" oninput="F('km',this.value===''?'':+this.value,true)">
+    <input type="number" min="0" value="${f.km}" placeholder="ex: 20" oninput="F('km',this.value===''?'':+this.value,true)">
     <label>Séances par semaine ${badge}</label>
     <div class="card mut" style="margin-top:0">${msg}</div>
     ${sessChips}${warn}${warn2}
@@ -693,7 +632,7 @@ function draw(){
     <label style="margin-top:16px">Quand commencer ?</label>
     ${startSel}
     ${customDate}
-       ${f.km===''||f.km==null?`<button class="alt" onclick="alert('Indique ton kilométrage hebdo actuel (0 si tu débutes)')" style="opacity:.6">Générer mon plan</button>`:`<button onclick="go('gen')">Générer mon plan</button>`}
+    ${f.km===''||f.km==null?`<button class="alt" onclick="alert('Indique ton kilométrage hebdo actuel (0 si tu débutes)')" style="opacity:.6">Générer mon plan</button>`:`<button onclick="go('gen')">Générer mon plan</button>`}`;
   }
   else if(scr==='gen'){
     generate();adaptAll();save();
@@ -732,7 +671,7 @@ function draw(){
     </div>`;
   }
   else if(scr==='main'){
-    if(S.plan&&S.plan.v!==15&&!S.plan.sessions.some(x=>x.status==='done'))generate();
+    if(S.plan&&S.plan.v!==16&&!S.plan.sessions.some(x=>x.status==='done'))generate();
     if(S.plan&&S.plan.beg&&!S.introSeen){S.introSeen=true;save();scr='introDeb';draw();return}
     adaptAll();save();nav.style.display='flex';
     nav.innerHTML=[['home','🏠','Accueil'],['cal','📅','Calendrier'],['prog','📈','Progression'],['prof','👤','Profil']].map(([k,i,l])=>`<a class="${tab===k?'on':''}" onclick="setT('${k}')">${i}<br>${l}</a>`).join('');
@@ -740,7 +679,7 @@ function draw(){
   else if(scr==='det'){h=detail()}
   else if(scr==='rpe'){R.ok=1;h=rpeForm()}
   if(['lvl','ref','goal','dispo'].includes(scr)){const b={lvl:S.plan?"setT('prof')":"go('auth')",ref:"go('lvl')",goal:S.form.lvl==='new'?"go('lvl')":"go('ref')",dispo:"go('goal')"}[scr];h=`<button class="alt" style="width:auto;margin:0 0 6px;padding:8px 14px" onclick="${b}">← Retour</button>`+h}
-    a.innerHTML=h;
+  a.innerHTML=h;
   a.style.animation='none';
   void a.offsetWidth;
   a.style.animation='fadeIn .3s ease';
@@ -763,9 +702,7 @@ function tg(i){const d=S.form.days;S.form.days=d.includes(i)?d.filter(x=>x!==i):
 function alertCard(){return alertOn()?`<div class="card warn"><h3>⚠️ Douleur à surveiller</h3>Progression suspendue. Consulte un médecin ou kiné du sport avant de reprendre.</div>`:''}
 function typeTag(t){return `<span class="tag t-${t}">${TYPES[t]}</span>`}
 function row(s){const st={done:'✅',missed:'⛔',todo:'○'}[s.status];let info=s.km+' km';if(s.type==='race')info=s.km+' km · course';return `<div class="s" onclick="openSess('${s.id}')"><div>${typeTag(s.type)}${fd(s.date)}<div class="mut">${info}</div></div><div>${st}</div></div>`}
-
 function openSess(id){sel=id;go('det')}
-
 function home(){
   const p=S.plan;
   if(!p)return '<div class="card">Aucun plan chargé.</div>';
@@ -813,14 +750,12 @@ function home(){
         <button onclick="openSess('${s.id}')" style="margin-top:0">Voir la séance</button>
       </div>
     </div>`;
-    } else {
-    // Stats finales de fin de plan
+  } else {
     const totalKm=r1(p.sessions.concat(S.old||[]).filter(x=>x.status==='done').reduce((a,x)=>a+(+x.actKm||x.km||0),0));
     const totalSessDone=p.sessions.concat(S.old||[]).filter(x=>x.status==='done').length;
     const nbSem=p.N;
     const firstDone=p.sessions.concat(S.old||[]).filter(x=>x.status==='done').map(x=>pd(x.date).getTime());
     const spanD=firstDone.length?Math.round((Date.now()-Math.min(...firstDone))/864e5):0;
-    // Confetti au premier affichage
     setTimeout(()=>{if(!window._confettiDone){window._confettiDone=true;launchConfetti()}},100);
     nextCard=`<div class="finish-hero">
       <div class="emoji">🏆</div>
@@ -828,22 +763,13 @@ function home(){
       <p>Tu as terminé ton plan de ${nbSem} semaines</p>
     </div>
     <div class="row">
-      <div class="card" style="text-align:center;padding:16px 8px">
-        <div class="kpi-sub">Distance</div>
-        <div class="kpi-big">${totalKm}<span style="font-size:14px;color:var(--mut)"> km</span></div>
-      </div>
-      <div class="card" style="text-align:center;padding:16px 8px">
-        <div class="kpi-sub">Séances</div>
-        <div class="kpi-big">${totalSessDone}</div>
-      </div>
-      <div class="card" style="text-align:center;padding:16px 8px">
-        <div class="kpi-sub">Durée</div>
-        <div class="kpi-big">${Math.round(spanD/7)}<span style="font-size:14px;color:var(--mut)"> sem.</span></div>
-      </div>
+      <div class="card" style="text-align:center;padding:16px 8px"><div class="kpi-sub">Distance</div><div class="kpi-big">${totalKm}<span style="font-size:14px;color:var(--mut)"> km</span></div></div>
+      <div class="card" style="text-align:center;padding:16px 8px"><div class="kpi-sub">Séances</div><div class="kpi-big">${totalSessDone}</div></div>
+      <div class="card" style="text-align:center;padding:16px 8px"><div class="kpi-sub">Durée</div><div class="kpi-big">${Math.round(spanD/7)}<span style="font-size:14px;color:var(--mut)"> sem.</span></div></div>
     </div>
     <div class="card" style="text-align:center;padding:20px 16px">
       <p style="margin:0 0 12px;font-weight:600">Et maintenant ?</p>
-      <p class="mut" style="margin:0 0 14px">Tu peux créer un nouveau plan pour un nouvel objectif, ou garder ton rythme actuel.</p>
+      <p class="mut" style="margin:0 0 14px">Crée un nouveau plan pour un nouvel objectif.</p>
       <button onclick="go('lvl')">🎯 Nouveau plan</button>
     </div>`;
   }
@@ -873,29 +799,16 @@ function home(){
     ${todayBanner}
     ${nextCard}
     <div class="row" style="margin-top:10px">
-      <div class="card" style="text-align:center;padding:14px 8px">
-        <div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.05em">CETTE SEMAINE</div>
-        <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px">${kmWeek}<span style="font-size:13px;color:var(--mut);font-weight:600"> / ${kmWeekPlanned}</span></div>
-        <div class="mut" style="font-size:11px">km</div>
-      </div>
-      <div class="card" style="text-align:center;padding:14px 8px">
-        <div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.05em">SÉANCES</div>
-        <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px">${sessWeekDone}<span style="font-size:13px;color:var(--mut);font-weight:600"> / ${sessWeekTotal}</span></div>
-        <div class="mut" style="font-size:11px">complétées</div>
-      </div>
-      <div class="card" style="text-align:center;padding:14px 8px">
-        <div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.05em">${joursRace!=null?'JOURS J':'TOTAL'}</div>
-        <div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px">${joursRace!=null?joursRace:totalSess}</div>
-        <div class="mut" style="font-size:11px">${joursRace!=null?'avant la course':'séances'}</div>
-      </div>
+      <div class="card" style="text-align:center;padding:14px 8px"><div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.05em">CETTE SEMAINE</div><div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px">${kmWeek}<span style="font-size:13px;color:var(--mut);font-weight:600"> / ${kmWeekPlanned}</span></div><div class="mut" style="font-size:11px">km</div></div>
+      <div class="card" style="text-align:center;padding:14px 8px"><div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.05em">SÉANCES</div><div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px">${sessWeekDone}<span style="font-size:13px;color:var(--mut);font-weight:600"> / ${sessWeekTotal}</span></div><div class="mut" style="font-size:11px">complétées</div></div>
+      <div class="card" style="text-align:center;padding:14px 8px"><div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.05em">${joursRace!=null?'JOURS J':'TOTAL'}</div><div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px">${joursRace!=null?joursRace:totalSess}</div><div class="mut" style="font-size:11px">${joursRace!=null?'avant la course':'séances'}</div></div>
     </div>
   `;
 }
-
 function cal(){
   const p=S.plan;
   const wCur=curW();
-  if(typeof calOpen==='undefined')window.calOpen=wCur;
+  if(typeof window.calOpen==='undefined')window.calOpen=wCur;
   let h='<h2>Calendrier</h2>';
   h+=`<p class="mut" style="margin-top:-8px">${p.N} semaines · ${[...new Set(p.phases)].join(' → ')}</p>`;
   for(let w=0;w<p.N;w++){
@@ -930,20 +843,17 @@ function cal(){
   }
   return h;
 }
-
 function toggleWeek(w){
   window.calOpen=(window.calOpen===w?-1:w);
   window._scrollAnchorW=w;
   draw();
 }
-
 function detail(){
   const p=S.plan,s=p.sessions.find(x=>x.id===sel);
   if(!s)return '<div class="card">Séance introuvable</div>';
   const d=describe(s,p);
   const typeColor=t=>({easy:'var(--ok)',quality:'var(--ac)',recovery:'var(--violet)',long:'var(--blue)',quality2:'var(--amber)',race:'var(--ko)'})[t]||'var(--ac)';
   const c=typeColor(s.type);
-  // Estimation durée à partir des km (allure ~7 km/h en débutant, sinon via describe)
   let durEst='';
   const m=d.txt.match(/durée totale ~(\d+h\d+|\d+ min)/);
   if(m)durEst=m[1];
@@ -951,9 +861,7 @@ function detail(){
     const pace=!p.vma?6.5:(s.type==='quality'||s.type==='quality2'?p.vma*.9:s.type==='race'?(p.gpace||p.vma*.85):s.type==='recovery'?p.vma*.65:p.vma*.72);
     durEst=fmtDur(Math.round(s.km/pace*60));
   }
-  // Badge statut
   const stBadge={done:`<span class="pill ok">✅ Réalisée</span>`,missed:`<span class="pill ko">⛔ Manquée</span>`,todo:`<span class="pill warn">○ À faire</span>`}[s.status];
-  // Bloc compte-rendu si fait
   const doneBlock=s.status==='done'?`<div class="card"><h3>📊 Ton compte-rendu</h3>
     <div class="crit"><span>Distance réalisée</span><b>${s.actKm||'–'} km</b></div>
     <div class="crit"><span>RPE</span><b>${s.rpe}/10</b></div>
@@ -961,9 +869,8 @@ function detail(){
     ${s.hr?`<div class="crit"><span>FC moyenne</span><b>${s.hr} bpm</b></div>`:''}
     ${s.actMin?`<div class="crit"><span>Durée</span><b>${fmtDur(s.actMin)}</b></div>`:''}
   </div>`:'';
-  // Bloc modifier repliable
   const editBlock=s.type!=='race'?`<div class="card" id="editCard">
-    <div class="acc-head" onclick="document.getElementById('editCard').classList.toggle('acc-open')">
+    <div class="acc-head" onclick="var el=document.getElementById('editCard');el.classList.toggle('acc-open')">
       <span>✏️ Modifier cette séance</span>
       <span class="acc-arrow">▾</span>
     </div>
@@ -992,15 +899,8 @@ function detail(){
         ${stBadge}
       </div>
     </div>
-    <div class="card">
-      <h3>🎯 Objectif</h3>
-      <p style="margin:0">${d.obj}</p>
-    </div>
-    <div class="card">
-      <h3>🏃 Comment faire</h3>
-      <p style="margin:0 0 10px">${d.txt}</p>
-      <p class="mut" style="margin:0">💡 Les allures sont indicatives. En cas de vent, chaleur ou fatigue, fie-toi à ton RPE.</p>
-    </div>
+    <div class="card"><h3>🎯 Objectif</h3><p style="margin:0">${d.obj}</p></div>
+    <div class="card"><h3>🏃 Comment faire</h3><p style="margin:0 0 10px">${d.txt}</p><p class="mut" style="margin:0">💡 Les allures sont indicatives. En cas de vent, chaleur ou fatigue, fie-toi à ton RPE.</p></div>
     ${doneBlock}
     ${editBlock}
     <div class="sticky-bar">
@@ -1008,19 +908,17 @@ function detail(){
     </div>
   `;
 }
-
 const curS=()=>S.plan.sessions.find(x=>x.id===sel);
 function moveS(v){const s=curS();if(!v)return;s.date=v;const today=iso(new Date());if(s.status==='missed'&&v>=today)s.status='todo';else if(s.status==='todo'&&v<today)s.status='missed';save();draw()}
 function adjKm(d){const s=curS();s.km=Math.max(1,s.km+d);s.base=s.km;s.edited=true;save();draw()}
 function resetS(){const s=curS();s.status='todo';['rpe','pain','actKm','actMin','hr'].forEach(k=>delete s[k]);save();adaptAll();save();draw()}
-
 function painColor(v){
-  if(v<=0)return '#10b981';   // vert
-  if(v<=2)return '#22c55e';   // vert clair
-  if(v<=4)return '#f59e0b';   // jaune/ambre
-  if(v<=6)return '#f97316';   // orange
-  if(v<=8)return '#ef4444';   // rouge
-  return '#b91c1c';           // rouge foncé
+  if(v<=0)return '#10b981';
+  if(v<=2)return '#22c55e';
+  if(v<=4)return '#f59e0b';
+  if(v<=6)return '#f97316';
+  if(v<=8)return '#ef4444';
+  return '#b91c1c';
 }
 function rpeForm(){
   const s=S.plan.sessions.find(x=>x.id===sel);
@@ -1030,7 +928,7 @@ function rpeForm(){
   const painC=painColor(painVal);
   return `<h2>Compte-rendu</h2>
   <div class="card mut" style="padding:12px 14px">
-    <div style="cursor:pointer;font-weight:600" onclick="var e=this.parentNode.querySelector('.rpeHelp');e.style.display=e.style.display==='block'?'none':'block'">❓ C'est quoi le RPE ? <span style="float:right">▾</span></div>
+    <div style="cursor:pointer;font-weight:600" onclick="var el=this.parentNode.querySelector('.rpeHelp');el.style.display=el.style.display==='block'?'none':'block'">❓ C'est quoi le RPE ? <span style="float:right">▾</span></div>
     <div class="rpeHelp" style="display:none;margin-top:10px">
       <p>Le <b>RPE</b> est une note de 1 à 10 de ton effort ressenti.</p>
       <div class="crit"><span><b>1-2</b> · Très facile</span><b>Je peux chanter</b></div>
@@ -1042,20 +940,15 @@ function rpeForm(){
   </div>
   <label>Séance complétée ?</label>${chips([[1,'Oui'],[0,'Non']],R.ok,'ok')}
   <label>RPE : <b id="rv">${rpeVal}</b>/10</label>
-  <input id="rpe" type="range" min="1" max="10" value="${rpeVal}" style="--fill:${rpeFill}%"
-    oninput="rv.textContent=this.value;this.style.setProperty('--fill',((this.value-1)/9*100)+'%')">
+  <input id="rpe" type="range" min="1" max="10" value="${rpeVal}" style="--fill:${rpeFill}%" oninput="rv.textContent=this.value;this.style.setProperty('--fill',((this.value-1)/9*100)+'%')">
   <label>Douleur : <b id="pv" style="color:${painC}">${painVal}</b>/10</label>
-  <input id="pain" type="range" min="0" max="10" value="${painVal}" style="--fill:${painFill}%;--bar:${painC}"
-    oninput="var c=painColor(+this.value);pv.textContent=this.value;pv.style.color=c;this.style.setProperty('--fill',(this.value/10*100)+'%');this.style.setProperty('--bar',c)">
+  <input id="pain" type="range" min="0" max="10" value="${painVal}" style="--fill:${painFill}%;--bar:${painC}" oninput="var c=painColor(+this.value);pv.textContent=this.value;pv.style.color=c;this.style.setProperty('--fill',(this.value/10*100)+'%');this.style.setProperty('--bar',c)">
   <div class="row"><div><label>Distance (km)</label><input id="ak" type="number" step=".1" value="${s.km}"></div><div><label>Durée (min)</label><input id="am" type="number"></div><div><label>FC moy.</label><input id="hr" type="number"></div></div>
   <button onclick="sub()">Enregistrer</button><button class="alt" onclick="go('det')">Annuler</button>`;
 }
-
 function sub(){const s=S.plan.sessions.find(x=>x.id===sel);
   if(!R.ok){s.status='missed';R.ok=1;save();adaptAll();save();return setT('home')}
   s.status='done';s.rpe=+$('rpe').value;s.pain=+$('pain').value;s.actKm=+$('ak').value;s.actMin=+$('am').value;s.hr=+$('hr').value||null;save();adaptAll();save();setT('home')}
-
-/* ============ PROGRESSION ============ */
 function prepCard(){
   const ps=prepScore();if(!ps)return '';
   const cls=ps.prep>=75?'ok':ps.prep>=50?'mid':'low';
@@ -1085,13 +978,10 @@ function prepCard(){
 }
 function prog(){
   const p=S.plan,t=Date.now();
-  // --- Charges récentes ---
   const L=d=>r1(p.sessions.concat(S.old||[]).filter(s=>s.status==='done'&&t-pd(s.date)<d*864e5).reduce((a,s)=>a+(s.actKm||0),0));
   const l7=L(7),l28=L(28);
-  // --- Données du plan (semaines) ---
   const nbW=p.wk.length;
   const maxKm=Math.max(...p.wk,1);
-  // --- SVG line chart ---
   const W=320,H=140,padL=28,padR=8,padT=10,padB=22;
   const innerW=W-padL-padR,innerH=H-padT-padB;
   const stepX=nbW>1?innerW/(nbW-1):0;
@@ -1103,25 +993,16 @@ function prog(){
   const path=points.map((pt,i)=>(i===0?'M':'L')+pt.x+','+pt.y).join(' ');
   const areaPath=path+` L${padL+innerW},${padT+innerH} L${padL},${padT+innerH} Z`;
   const curWk=curW();
-  // --- Séparation visuelle par phase ---
   const phases=p.phases;
   const phaseBands=[];
   let lastPh=phases[0],startW=0;
   phases.forEach((ph,i)=>{
-    if(ph!==lastPh){
-      phaseBands.push({ph:lastPh,from:startW,to:i-1});
-      lastPh=ph;startW=i;
-    }
+    if(ph!==lastPh){phaseBands.push({ph:lastPh,from:startW,to:i-1});lastPh=ph;startW=i}
   });
   phaseBands.push({ph:lastPh,from:startW,to:nbW-1});
   const chartSVG=`
     <svg viewBox="0 0 ${W} ${H}" class="chart-svg" preserveAspectRatio="none">
-      <defs>
-        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="var(--ac)" stop-opacity=".25"/>
-          <stop offset="100%" stop-color="var(--ac)" stop-opacity="0"/>
-        </linearGradient>
-      </defs>
+      <defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--ac)" stop-opacity=".25"/><stop offset="100%" stop-color="var(--ac)" stop-opacity="0"/></linearGradient></defs>
       ${[0,.25,.5,.75,1].map(f=>`<line x1="${padL}" y1="${padT+innerH*f}" x2="${W-padR}" y2="${padT+innerH*f}" class="grid"/>`).join('')}
       <path d="${areaPath}" fill="url(#areaGrad)"/>
       <path d="${path}" class="line" stroke="var(--ac)"/>
@@ -1134,20 +1015,16 @@ function prog(){
         return `<text x="${pt.x}" y="${H-6}" text-anchor="middle" class="lbl ${pt.i===curWk?'lbl-cur':''}">S${pt.i+1}</text>`;
       }).join('')}
     </svg>`;
-  // --- Bandeau phases ---
   const phaseLegend=phaseBands.map(b=>`<span class="mut" style="font-size:11px">${b.ph} · S${b.from+1}${b.to>b.from?'-S'+(b.to+1):''}</span>`).join(' · ');
-  // --- Ratio de charge ---
   const ds=p.sessions.concat(S.old||[]).filter(x=>x.status==='done').map(x=>pd(x.date).getTime());
   const span=ds.length?(t-Math.min(...ds))/864e5:0;
   const ratio=span>=14&&l28?r1(l7/(l28/Math.min(4,span/7))):0;
   const rt=!ratio?'Pas encore calculable : il faut au moins 2 semaines de séances enregistrées.':ratio<.8?'Charge en baisse : tu peux reprendre le volume prévu.':ratio<=1.3?'✅ Zone idéale : progression régulière.':ratio<=1.5?'⚠️ Hausse marquée, surveille la fatigue.':'⚠️ Montée trop rapide : risque de blessure.';
   const ratioCls=!ratio?'flat':ratio<.8?'down':ratio<=1.3?'up':ratio<=1.5?'up':'up';
-  // --- Delta 7j vs semaine précédente ---
   const l7prev=r1(p.sessions.concat(S.old||[]).filter(s=>s.status==='done'&&t-pd(s.date)>=7*864e5&&t-pd(s.date)<14*864e5).reduce((a,s)=>a+(s.actKm||0),0));
   const delta=l7prev?r1((l7-l7prev)/l7prev*100):0;
   const deltaCls=delta>5?'up':delta<-5?'down':'flat';
   const deltaTxt=delta>0?'+'+delta+'%':delta+'%';
-  // --- Répartition par type de séance (faites) ---
   const doneAll=p.sessions.concat(S.old||[]).filter(x=>x.status==='done');
   const byType={};
   doneAll.forEach(x=>{byType[x.type]=(byType[x.type]||0)+(+x.actKm||x.km||0)});
@@ -1164,7 +1041,6 @@ function prog(){
       <div class="bar" style="margin:0;height:8px"><i style="width:${pct}%;background:${c}"></i></div>
     </div>`;
   }).join('');
-  // --- Jauge circulaire prépa ---
   const ps=prepScore();
   const R=48,C=2*Math.PI*R,off=C-(ps.prep/100)*C;
   const prepColor=ps.prep>=75?'var(--ok)':ps.prep>=50?'var(--warn)':'var(--ko)';
@@ -1174,10 +1050,7 @@ function prog(){
   </svg>`;
   const d=ps.detail||{};
   const rateTxt=!d.due?'—':`${d.done}/${d.due} séances (${Math.round((d.regularity||0)*100)}%)`;
-  const volTxt=!d.plannedKm?'—':`${d.realKm} / ${d.plannedKm} km`;
   const keyTxt=!d.keyTot?'—':`${d.keyOk}/${d.keyTot}`;
-  const painTxt=d.painScore===1?'Aucune':d.painScore>=.4?'Modérée':'⚠️ Élevée';
-  // --- Bloc estimation course ---
   let estimate='';
   if(ps.phase==='course'&&ps.ready!=null){
     const rc=ps.ready>=70?'var(--ok)':ps.ready>=40?'var(--warn)':'var(--ko)';
@@ -1187,11 +1060,7 @@ function prog(){
       <div class="mut" style="font-size:13px">VMA actuelle <b>${ps.vmaNow}</b> · VMA nécessaire <b>${ps.vmaNeeded}</b></div>
     </div>`;
   } else if(ps.phase==='course-sans-objectif'&&ps.est){
-    estimate=`<div class="card" style="text-align:center">
-      <div class="kpi-sub">Chrono estimé (aujourd'hui)</div>
-      <div style="font-size:38px;font-weight:800;letter-spacing:-.03em;color:var(--ac);margin:6px 0">${ps.est}</div>
-      <div class="mut" style="font-size:13px">Saisis un objectif chrono pour voir ton % de réussite.</div>
-    </div>`;
+    estimate=`<div class="card" style="text-align:center"><div class="kpi-sub">Chrono estimé (aujourd'hui)</div><div style="font-size:38px;font-weight:800;letter-spacing:-.03em;color:var(--ac);margin:6px 0">${ps.est}</div><div class="mut" style="font-size:13px">Saisis un objectif chrono pour voir ton % de réussite.</div></div>`;
   } else if(ps.msg){
     estimate=`<div class="card mut" style="font-size:13px">${esc(ps.msg)}</div>`;
   }
@@ -1242,9 +1111,5 @@ function prog(){
 function prof(){return `<h2>Profil</h2><div class="card"><b>${esc(S.user?.n)||''}</b><div class="mut">${esc(S.user?.e)||''}</div><p>Objectif : ${GOALS[S.form.goal]} · ${S.plan.N} sem.<br>VMA : ${S.plan.vma?S.plan.vma+' km/h':'débutant'}</p></div>
   <div class="card mut">Tu peux modifier l'objectif, les jours, le volume ou la date de course.</div><button onclick="go('lvl')">✏️ Modifier mon plan</button><button class="alt" onclick="if(confirm('Tout effacer ?')){try{localStorage.removeItem('rc1')}catch(e){}location.reload()}">Effacer mes données</button>`}
 draw();
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/RunCoach/sw.js').catch(()=>{});
-  });
-}
+if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/RunCoach/sw.js').catch(()=>{})})}
 </script></body></html>
