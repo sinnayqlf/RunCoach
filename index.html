@@ -655,9 +655,10 @@ function draw(){
     <label style="margin-top:16px">Quand commencer ?</label>
     ${startSel}
     ${customDate}
-        <div id="genBtnWrap">
+                <div id="genBtnWrap">
       ${f.km===''||f.km==null?`<button class="alt" onclick="alert('Choisis ton kilométrage hebdo (même 0) avant de générer.')" style="opacity:.6">Générer mon plan</button>`:`<button onclick="go('gen')">Générer mon plan</button>`}
     </div>
+  }
   else if(scr==='gen'){
     generate();adaptAll();save();
     const dest=S.plan.beg&&!S.introSeen?'introDeb':'home';
