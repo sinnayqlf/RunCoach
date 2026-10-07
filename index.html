@@ -108,7 +108,7 @@ input[type="range"]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;b
 .delta.down{background:rgba(16,185,129,.15);color:var(--ok)}
 .delta.flat{background:var(--ln);color:var(--mut)}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-#app>*{animation:fadeIn .3s ease}
+#app.animate>*{animation:fadeIn .3s ease}
 .card:active{transition:transform .1s}
 button:not(.alt):active{box-shadow:0 2px 6px rgba(255,90,31,.2)}
 .confetti{position:fixed;top:-10px;width:10px;height:10px;pointer-events:none;z-index:9999;opacity:.9;animation:fall linear forwards}
@@ -687,11 +687,10 @@ function draw(){
 
   a.innerHTML=h;
   if(screenChanged){
-    a.style.animation='none';
-    void a.offsetWidth;
-    a.style.animation='fadeIn .3s ease';
+    a.classList.add('animate');
+    setTimeout(()=>a.classList.remove('animate'),350);
   } else {
-    a.style.animation='none';
+    a.classList.remove('animate');
   }
   if(window._scrollAnchorW!=null){
     const w=window._scrollAnchorW;window._scrollAnchorW=null;
