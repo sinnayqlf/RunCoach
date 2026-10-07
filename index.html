@@ -693,7 +693,8 @@ function draw(){
     <label style="margin-top:16px">Quand commencer ?</label>
     ${startSel}
     ${customDate}
-    ${f.km===''||f.km==null?`<button class="alt" onclick="alert('Indique ton kilométrage hebdo actuel (0 si tu débutes)')" style="opacity:.6">Générer mon plan</button>`:`<button onclick="go('gen')">Générer mon plan</button>`}
+       ${f.km===''||f.km==null?`<button class="alt" onclick="alert('Indique ton kilométrage hebdo actuel (0 si tu débutes)')" style="opacity:.6">Générer mon plan</button>`:`<button onclick="go('gen')">Générer mon plan</button>`}
+  }
   else if(scr==='gen'){
     generate();adaptAll();save();
     const dest=S.plan.beg&&!S.introSeen?'introDeb':'home';
@@ -731,7 +732,7 @@ function draw(){
     </div>`;
   }
   else if(scr==='main'){
-    if(S.plan&&S.plan.v!==14&&!S.plan.sessions.some(x=>x.status==='done'))generate();
+    if(S.plan&&S.plan.v!==15&&!S.plan.sessions.some(x=>x.status==='done'))generate();
     if(S.plan&&S.plan.beg&&!S.introSeen){S.introSeen=true;save();scr='introDeb';draw();return}
     adaptAll();save();nav.style.display='flex';
     nav.innerHTML=[['home','🏠','Accueil'],['cal','📅','Calendrier'],['prog','📈','Progression'],['prof','👤','Profil']].map(([k,i,l])=>`<a class="${tab===k?'on':''}" onclick="setT('${k}')">${i}<br>${l}</a>`).join('');
