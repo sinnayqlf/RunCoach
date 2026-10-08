@@ -118,13 +118,17 @@ button:not(.alt):active{box-shadow:0 2px 6px rgba(255,90,31,.2)}
 <meta name="theme-color" content="#ff5a1f">
 </head><body><div id="app"></div><nav id="nav" style="display:none"></nav>
 <script>
-  const APP_VERSION='1.3';
+  const APP_VERSION='1.4';
 (function(){
   const cachedVersion=localStorage.getItem('runcoach-version');
   if(cachedVersion&&cachedVersion!==APP_VERSION){
     console.log('[App] Nouvelle version détectée, rechargement…');
     localStorage.setItem('runcoach-version',APP_VERSION);
-    setTimeout(()=>window.location.reload(),100);
+    // iOS standalone a besoin d'un rechargement plus agressif
+    setTimeout(()=>{
+      const url=window.location.href.split('?')[0].split('#')[0];
+      window.location.replace(url+'?_v='+Date.now());
+    },300);
     return;
   }
   localStorage.setItem('runcoach-version',APP_VERSION);
@@ -390,13 +394,13 @@ function testVMAScreen(){
   const allowed=testVMAAllowed();
   const f=S.form;
   if(!allowed){
-    return '<button class="alt" onclick="go(\'prof\')" style="width:auto;margin:0 0 10px;padding:8px 14px">← Retour</button>'
+    return '<button class="alt" onclick="setT(\'prof\')" style="width:auto;margin:0 0 10px;padding:8px 14px">← Retour</button>'
       +'<div class="locked"><span class="emoji">🔒</span><h2>Test VMA bientôt disponible</h2>'
       +'<p class="mut">Pour les <b>débutants</b> et les <b>reprises</b>, on te conseille de <b>terminer ton premier plan</b> avant de faire un test VMA.</p>'
       +'<p class="mut">Courir 6 minutes à fond, c\'est intense. Tu auras de meilleures sensations et une VMA plus fiable après quelques semaines d\'entraînement.</p>'
       +'<div class="card" style="text-align:left;margin-top:20px"><h3>💡 En attendant</h3>'
       +'<p class="mut" style="margin:0">Continue ton plan actuel. Dès que tu auras terminé, tu pourras faire le test et mettre à jour toutes tes allures.</p></div>'
-      +'<button onclick="go(\'prof\')" style="margin-top:20px">Retour au profil</button></div>';
+      +'<button onclick="setT(\'prof\')" style="margin-top:20px">Retour au profil</button></div>';
   }
   const d=+f.testDist||0;
   const newVMA=d>0?r1(d*10):0;
