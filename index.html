@@ -106,12 +106,19 @@ button:not(.alt):active{box-shadow:0 2px 6px rgba(255,90,31,.2)}
 .finish-hero .emoji{font-size:64px;line-height:1;margin-bottom:8px;display:inline-block;animation:bob 1.4s ease-in-out infinite}
 .finish-hero h1{font-size:32px;font-weight:800;letter-spacing:-.03em;color:#fff;-webkit-text-fill-color:#fff;margin:6px 0}
 .finish-hero p{opacity:.95;margin:6px 0 0;font-size:15px}
+  .test-hero{padding:22px 18px;text-align:center;background:linear-gradient(135deg,rgba(255,90,31,.08),rgba(255,138,61,.04));border:1.5px solid rgba(255,90,31,.25);border-radius:var(--radius);margin:12px 0}
+.test-hero .vma-big{font-size:52px;font-weight:800;letter-spacing:-.03em;color:var(--ac);line-height:1}
+.test-badge{display:inline-block;font-size:12px;padding:4px 10px;border-radius:100px;background:var(--ln);font-weight:600;margin:4px 4px 0 0}
+.test-badge.ok{background:rgba(16,185,129,.15);color:var(--ok)}
+.test-badge.ko{background:rgba(245,158,11,.15);color:var(--warn)}
+.locked{text-align:center;padding:30px 16px}
+.locked .emoji{font-size:56px;line-height:1;margin-bottom:10px;display:block}
 </style>
 <link rel="manifest" href="/RunCoach/manifest.json">
 <meta name="theme-color" content="#ff5a1f">
 </head><body><div id="app"></div><nav id="nav" style="display:none"></nav>
 <script>
-  const APP_VERSION='1.1';
+  const APP_VERSION='1.2';
 (function(){
   const cachedVersion=localStorage.getItem('runcoach-version');
   if(cachedVersion&&cachedVersion!==APP_VERSION){
@@ -129,7 +136,7 @@ const R={ok:1};
 const DUR_MAX={reprise:90,forme:120,progression:150,'10k':150,semi:180,marathon:210};
 const PREP={beg:{reprise:{min:6,reco:8,conf:10,chips:[6,8,10,12]},forme:{min:8,reco:10,conf:12,chips:[8,10,12,16]},progression:{min:10,reco:12,conf:16,chips:[10,12,16,20]},'10k':{min:8,reco:10,conf:12,chips:[8,10,12,16]},semi:{min:12,reco:16,conf:20,chips:[12,16,20,24]},marathon:{min:16,reco:20,conf:24,chips:[16,20,24,28]}},conf:{reprise:{min:4,reco:6,conf:8,chips:[4,6,8,10]},forme:{min:6,reco:8,conf:10,chips:[6,8,10,12]},progression:{min:8,reco:10,conf:12,chips:[8,10,12,16]},'10k':{min:6,reco:8,conf:10,chips:[6,8,10,12]},semi:{min:10,reco:12,conf:16,chips:[10,12,16,20]},marathon:{min:12,reco:16,conf:20,chips:[12,16,20,24]}}};
 const SESS_RECO={beg:{reprise:[2,3],forme:[3,3],progression:[3,4],'10k':[3,3],semi:[3,4],marathon:[4,4]},conf:{reprise:[3,4],forme:[3,4],progression:[4,5],'10k':[4,5],semi:[4,5],marathon:[5,6]}};
-let S={user:null,form:{lvl:'ref',dist:10,h:0,m:50,s:0,date:'',vma:'',goal:'10k',weeks:12,race:'',target:'',n:3,days:[1,3,6],km:'',refs:[{dist:10,h:0,m:50,s:0,date:''}],startOpt:'next',startDate:''},plan:null,refs:[]};
+let S={user:null,form:{lvl:'ref',dist:10,h:0,m:50,s:0,date:'',vma:'',vmaDate:'',testDist:'',goal:'10k',weeks:12,race:'',target:'',n:3,days:[1,3,6],km:'',refs:[{dist:10,h:0,m:50,s:0,date:''}],startOpt:'next',startDate:''},plan:null,refs:[]};
 let scr='splash',sel=null,tab='home',step=0;
 try{const x=localStorage.getItem('rc1');if(x)S=JSON.parse(x)}catch(e){}
 if(!S.form.refs)S.form.refs=[{dist:10,h:0,m:50,s:0,date:''}];
@@ -302,6 +309,7 @@ else if(scr==='introDeb'){h='<div class="hero" style="min-height:auto;padding-to
 else if(scr==='main'){if(S.plan&&S.plan.v!==16&&!S.plan.sessions.some(x=>x.status==='done'))generate();if(S.plan&&S.plan.beg&&!S.introSeen){S.introSeen=true;save();scr='introDeb';draw();return}adaptAll();save();nav.style.display='flex';nav.innerHTML=[['home','🏠','Accueil'],['cal','📅','Calendrier'],['prog','📈','Progression'],['prof','👤','Profil']].map(([k,i,l])=>'<a class="'+(tab===k?'on':'')+'" onclick="setT(\''+k+'\')">'+i+'<br>'+l+'</a>').join('');h=tab==='home'?home():tab==='cal'?cal():tab==='prog'?prog():prof()}
 else if(scr==='det'){h=detail()}
 else if(scr==='rpe'){R.ok=1;h=rpeForm()}
+    else if(scr==='testVMA'){h=testVMAScreen()}
 if(['lvl','ref','goal','dispo'].includes(scr)){const b={lvl:S.plan?"setT('prof')":"go('auth')",ref:"go('lvl')",goal:S.form.lvl==='new'?"go('lvl')":"go('ref')",dispo:"go('goal')"}[scr];h='<button class="alt" style="width:auto;margin:0 0 6px;padding:8px 14px" onclick="'+b+'">← Retour</button>'+h}
 const prevScreen=window._lastScreen||'';const newScreen=scr+(tab?'/'+tab:'');const screenChanged=prevScreen!==newScreen;window._lastScreen=newScreen;
 a.innerHTML=h;
@@ -341,7 +349,85 @@ function toggleRpeHelp(el){var h=el.parentNode.querySelector('.rpeHelp');if(h)h.
 function sub(){const s=S.plan.sessions.find(x=>x.id===sel);if(!R.ok){s.status='missed';R.ok=1;save();adaptAll();save();return setT('home')}s.status='done';s.rpe=+$('rpe').value;s.pain=+$('pain').value;s.actKm=+$('ak').value;s.actMin=+$('am').value;s.hr=+$('hr').value||null;save();adaptAll();save();setT('home')}
 function prog(){const p=S.plan,t=Date.now();const L=d=>r1(p.sessions.concat(S.old||[]).filter(s=>s.status==='done'&&t-pd(s.date)<d*864e5).reduce((a,s)=>a+(s.actKm||0),0));const l7=L(7),l28=L(28);const nbW=p.wk.length;const maxKm=Math.max(...p.wk,1);const W=320,H=140,padL=28,padR=8,padT=10,padB=22;const innerW=W-padL-padR,innerH=H-padT-padB;const stepX=nbW>1?innerW/(nbW-1):0;const points=p.wk.map((v,i)=>{const x=padL+i*stepX;const y=padT+innerH-(v/maxKm)*innerH;return{x,y,v,i}});const path=points.map((pt,i)=>(i===0?'M':'L')+pt.x+','+pt.y).join(' ');const areaPath=path+' L'+(padL+innerW)+','+(padT+innerH)+' L'+padL+','+(padT+innerH)+' Z';const curWk=curW();const phases=p.phases;const phaseBands=[];let lastPh=phases[0],startW=0;phases.forEach((ph,i)=>{if(ph!==lastPh){phaseBands.push({ph:lastPh,from:startW,to:i-1});lastPh=ph;startW=i}});phaseBands.push({ph:lastPh,from:startW,to:nbW-1});const chartSVG='<svg viewBox="0 0 '+W+' '+H+'" class="chart-svg" preserveAspectRatio="none"><defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="var(--ac)" stop-opacity=".25"/><stop offset="100%" stop-color="var(--ac)" stop-opacity="0"/></linearGradient></defs>'+[0,.25,.5,.75,1].map(f=>'<line x1="'+padL+'" y1="'+(padT+innerH*f)+'" x2="'+(W-padR)+'" y2="'+(padT+innerH*f)+'" class="grid"/>').join('')+'<path d="'+areaPath+'" fill="url(#areaGrad)"/><path d="'+path+'" class="line" stroke="var(--ac)"/>'+points.map(pt=>'<circle cx="'+pt.x+'" cy="'+pt.y+'" r="'+(pt.i===curWk?5:3)+'" class="dot" stroke="'+(pt.i===curWk?'var(--ac)':'var(--ln)')+'"/>').join('')+'<line x1="'+padL+'" y1="'+padT+'" x2="'+padL+'" y2="'+(padT+innerH)+'" stroke="var(--ln)"/><text x="'+(padL-4)+'" y="'+(padT+4)+'" text-anchor="end" class="lbl">'+maxKm+'</text><text x="'+(padL-4)+'" y="'+(padT+innerH)+'" text-anchor="end" class="lbl">0</text>'+points.map(pt=>{if(pt.i%Math.ceil(nbW/8)!==0&&pt.i!==nbW-1)return'';return '<text x="'+pt.x+'" y="'+(H-6)+'" text-anchor="middle" class="lbl '+(pt.i===curWk?'lbl-cur':'')+'">S'+(pt.i+1)+'</text>'}).join('')+'</svg>';const phaseLegend=phaseBands.map(b=>'<span class="mut" style="font-size:11px">'+b.ph+' · S'+(b.from+1)+(b.to>b.from?'-S'+(b.to+1):'')+'</span>').join(' · ');const ds=p.sessions.concat(S.old||[]).filter(x=>x.status==='done').map(x=>pd(x.date).getTime());const span=ds.length?(t-Math.min(...ds))/864e5:0;const ratio=span>=14&&l28?r1(l7/(l28/Math.min(4,span/7))):0;const rt=!ratio?'Pas encore calculable : il faut au moins 2 semaines de séances enregistrées.':ratio<.8?'Charge en baisse : tu peux reprendre le volume prévu.':ratio<=1.3?'✅ Zone idéale : progression régulière.':ratio<=1.5?'⚠️ Hausse marquée, surveille la fatigue.':'⚠️ Montée trop rapide : risque de blessure.';const ratioCls=!ratio?'flat':ratio<.8?'down':'up';const l7prev=r1(p.sessions.concat(S.old||[]).filter(s=>s.status==='done'&&t-pd(s.date)>=7*864e5&&t-pd(s.date)<14*864e5).reduce((a,s)=>a+(s.actKm||0),0));const delta=l7prev?r1((l7-l7prev)/l7prev*100):0;const deltaCls=delta>5?'up':delta<-5?'down':'flat';const deltaTxt=delta>0?'+'+delta+'%':delta+'%';const doneAll=p.sessions.concat(S.old||[]).filter(x=>x.status==='done');const byType={};doneAll.forEach(x=>{byType[x.type]=(byType[x.type]||0)+(+x.actKm||x.km||0)});const totalKm=r1(Object.values(byType).reduce((a,b)=>a+b,0))||1;const typeColors={easy:'var(--ok)',quality:'var(--ac)',recovery:'var(--violet)',long:'var(--blue)',quality2:'var(--amber)',race:'var(--ko)'};const typeBars=Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([ty,km])=>{const pct=Math.round(km/totalKm*100);const c=typeColors[ty]||'var(--ac)';return '<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px"><span style="font-weight:600">'+(TYPES[ty]||ty)+'</span><span class="mut">'+r1(km)+' km · '+pct+'%</span></div><div class="bar" style="margin:0;height:8px"><i style="width:'+pct+'%;background:'+c+'"></i></div></div>'}).join('');const ps=prepScore();const R=48,C=2*Math.PI*R,off=C-(ps.prep/100)*C;const prepColor=ps.prep>=75?'var(--ok)':ps.prep>=50?'var(--warn)':'var(--ko)';const ring='<svg width="120" height="120" viewBox="0 0 120 120" style="transform:rotate(-90deg)"><circle cx="60" cy="60" r="'+R+'" fill="none" stroke="var(--ln)" stroke-width="9"/><circle cx="60" cy="60" r="'+R+'" fill="none" stroke="'+prepColor+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+off+'" style="transition:stroke-dashoffset .6s ease"/></svg>';const d=ps.detail||{};const rateTxt=!d.due?'—':d.done+'/'+d.due+' séances ('+Math.round((d.regularity||0)*100)+'%)';const keyTxt=!d.keyTot?'—':d.keyOk+'/'+d.keyTot;let estimate='';if(ps.phase==='course'&&ps.ready!=null){const rc=ps.ready>=70?'var(--ok)':ps.ready>=40?'var(--warn)':'var(--ko)';estimate='<div class="card" style="text-align:center;background:linear-gradient(135deg,'+rc+'10,'+rc+'05);border-color:'+rc+'30"><div class="kpi-sub">Réussite estimée à l\'objectif</div><div style="font-size:44px;font-weight:800;letter-spacing:-.03em;color:'+rc+';margin:6px 0">'+ps.ready+'%</div><div class="mut" style="font-size:13px">VMA actuelle <b>'+ps.vmaNow+'</b> · VMA nécessaire <b>'+ps.vmaNeeded+'</b></div></div>'}else if(ps.phase==='course-sans-objectif'&&ps.est){estimate='<div class="card" style="text-align:center"><div class="kpi-sub">Chrono estimé (aujourd\'hui)</div><div style="font-size:38px;font-weight:800;letter-spacing:-.03em;color:var(--ac);margin:6px 0">'+ps.est+'</div><div class="mut" style="font-size:13px">Saisis un objectif chrono pour voir ton % de réussite.</div></div>'}else if(ps.msg){estimate='<div class="card mut" style="font-size:13px">'+esc(ps.msg)+'</div>'}
 return '<h2>Progression</h2>'+alertCard()+(p.boost?'<div class="card" style="background:linear-gradient(135deg,rgba(255,90,31,.08),rgba(255,138,61,.04));border-color:rgba(255,90,31,.2)">📈 Tes séances validées facilement ont relevé tes allures de +'+r1(p.boost)+' km/h de VMA.</div>':'')+'<div class="card" style="display:flex;gap:18px;align-items:center;padding:18px"><div style="position:relative;flex-shrink:0;width:120px;height:120px">'+ring+'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:26px;font-weight:800;letter-spacing:-.03em">'+ps.prep+'%</div><div class="kpi-sub" style="font-size:9px">PRÉPA</div></div></div><div style="flex:1;min-width:0"><div class="kpi-sub">Cette semaine</div><div class="kpi-big">'+l7+' <span style="font-size:14px;color:var(--mut);font-weight:600">km</span></div>'+(l7prev?'<span class="delta '+deltaCls+'">'+deltaTxt+' vs sem. dernière</span>':'<span class="delta flat">1ère semaine</span>')+'</div></div><div class="row"><div class="card" style="text-align:center;padding:14px 8px"><div class="kpi-sub">Régularité</div><div class="kpi-big" style="font-size:20px">'+Math.round((d.regularity||0)*100)+'%</div><div class="mut" style="font-size:11px">'+rateTxt+'</div></div><div class="card" style="text-align:center;padding:14px 8px"><div class="kpi-sub">Volume</div><div class="kpi-big" style="font-size:20px">'+(d.realKm||0)+'<span style="font-size:13px;color:var(--mut)">/'+(d.plannedKm||0)+'</span></div><div class="mut" style="font-size:11px">km cumulés</div></div><div class="card" style="text-align:center;padding:14px 8px"><div class="kpi-sub">Séances clés</div><div class="kpi-big" style="font-size:20px">'+keyTxt+'</div><div class="mut" style="font-size:11px">validées</div></div></div>'+estimate+'<div class="card chart-card"><h3 style="margin:0 0 4px">Volume hebdomadaire</h3><div class="mut" style="margin-bottom:8px;font-size:12px">'+phaseLegend+'</div>'+chartSVG+'</div><div class="card"><h3>Ratio de charge</h3><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0"><div class="kpi-big">'+(ratio||'—')+'</div><span class="delta '+ratioCls+'">'+(!ratio?'—':ratio<.8?'Baisse':ratio<=1.3?'Idéal':ratio<=1.5?'Élevé':'Trop rapide')+'</span></div><div class="mut" style="font-size:13px">'+rt+'</div></div>'+(typeBars?'<div class="card"><h3>Répartition par type de séance</h3><div class="mut" style="margin-bottom:8px;font-size:12px">Sur '+r1(totalKm)+' km courus au total</div>'+typeBars+'</div>':'')+'<div class="card mut" style="font-size:12px;text-align:center;padding:12px">Régularité : séances faites / prévues · Volume : km réalisés / planifiés · Séances clés : qualité + longues validées avec RPE ≤ 7</div>'}
-function prof(){return '<h2>Profil</h2><div class="card"><b>'+(esc(S.user?.n)||'')+'</b><div class="mut">'+(esc(S.user?.e)||'')+'</div><p>Objectif : '+GOALS[S.form.goal]+' · '+S.plan.N+' sem.<br>VMA : '+(S.plan.vma?S.plan.vma+' km/h':'débutant')+'</p></div><div class="card mut">Tu peux modifier l\'objectif, les jours, le volume ou la date de course.</div><button onclick="go(\'lvl\')">✏️ Modifier mon plan</button><button class="alt" onclick="if(confirm(\'Tout effacer ?\')){try{localStorage.removeItem(\'rc1\')}catch(e){}location.reload()}">Effacer mes données</button>'}
+function prof(){const canTest=testVMAAllowed();const vmaDate=S.form.vmaDate||null;return '<h2>Profil</h2><div class="card"><b>'+(esc(S.user?.n)||'')+'</b><div class="mut">'+(esc(S.user?.e)||'')+'</div><p>Objectif : '+GOALS[S.form.goal]+' · '+S.plan.N+' sem.<br>VMA : '+(S.plan.vma?S.plan.vma+' km/h':'débutant')+(vmaDate?' <span class="mut">(test du '+fd(vmaDate)+')</span>':'')+'</p></div><div class="card"><h3>🏁 Test VMA</h3><p class="mut" style="margin:0 0 10px">Fais le test de 6 minutes pour connaître ta VMA exacte. Toutes tes allures seront mises à jour automatiquement.</p>'+(canTest?'<button onclick="launchTestVMA()">Lancer le test VMA</button>':'<button class="alt" onclick="launchTestVMA()" style="opacity:.7">🔒 Termine ton plan d\'abord</button>')+'</div><div class="card mut">Tu peux modifier l\'objectif, les jours, le volume ou la date de course.</div><button onclick="go(\'lvl\')">✏️ Modifier mon plan</button><button class="alt" onclick="if(confirm(\'Tout effacer ?\')){try{localStorage.removeItem(\'rc1\')}catch(e){}location.reload()}">Effacer mes données</button>'}
+  function testVMAAllowed(){
+  // Autorisé si :
+  // - Non débutant (VMA saisie manuellement ou via perfs) ET pas "reprise"
+  // - OU un plan a déjà été terminé (done)
+  const p=S.plan;
+  const lvl=S.form.lvl;
+  const goal=S.form.goal;
+  // Débutant pur ou reprise → doit attendre d'avoir terminé un plan
+  if(lvl==='new'||goal==='reprise'){
+    // Vérifie si un ancien plan est fini
+    const anyDone=p&&p.sessions&&p.sessions.some(x=>x.status==='done');
+    const planFinished=p&&p.sessions&&!p.sessions.some(x=>x.status==='todo');
+    return planFinished||anyDone;
+  }
+  // Confirmé → autorisé
+  return true;
+}
+function launchTestVMA(){
+  scr='testVMA';draw();
+}
+function setTestDist(v){
+  S.form.testDist=+v||0;
+  save();draw();
+}
+function saveTestVMA(){
+  const d=+S.form.testDist||0;
+  if(d<=0){alert('Entre une distance valide (en km)');return}
+  if(d<0.5||d>3){alert('La distance doit être entre 0.5 et 3 km (test 6 min)');return}
+  const newVMA=r1(d*10);
+  S.form.vma=newVMA;
+  S.form.vmaDate=iso(new Date());
+  S.form.testDist='';
+  save();
+  alert('✅ Nouvelle VMA enregistrée : '+newVMA+' km/h\nToutes tes allures sont mises à jour.');
+  go('prof');
+}
+function testVMAScreen(){
+  const allowed=testVMAAllowed();
+  const f=S.form;
+  if(!allowed){
+    return '<button class="alt" onclick="go(\'prof\')" style="width:auto;margin:0 0 10px;padding:8px 14px">← Retour</button>'
+      +'<div class="locked"><span class="emoji">🔒</span><h2>Test VMA bientôt disponible</h2>'
+      +'<p class="mut">Pour les <b>débutants</b> et les <b>reprises</b>, on te conseille de <b>terminer ton premier plan</b> avant de faire un test VMA.</p>'
+      +'<p class="mut">Courir 6 minutes à fond, c\'est intense. Tu auras de meilleures sensations et une VMA plus fiable après quelques semaines d\'entraînement.</p>'
+      +'<div class="card" style="text-align:left;margin-top:20px"><h3>💡 En attendant</h3>'
+      +'<p class="mut" style="margin:0">Continue ton plan actuel. Dès que tu auras terminé, tu pourras faire le test et mettre à jour toutes tes allures.</p></div>'
+      +'<button onclick="go(\'prof\')" style="margin-top:20px">Retour au profil</button></div>';
+  }
+  const d=+f.testDist||0;
+  const newVMA=d>0?r1(d*10):0;
+  const currentVMA=level();
+  return '<button class="alt" onclick="go(\'prof\')" style="width:auto;margin:0 0 10px;padding:8px 14px">← Retour</button>'
+    +'<h2>🏁 Test VMA — 6 minutes</h2>'
+    +'<div class="card"><h3>📋 Le protocole</h3>'
+    +'<ol class="mut" style="margin:6px 0 10px 16px;padding:0">'
+    +'<li>Échauffement : 15 min de footing très lent + 3 accélérations</li>'
+    +'<li>Repos : 3 min de marche</li>'
+    +'<li><b>Course : 6 minutes à intensité maximale</b> (allure la plus rapide que tu peux tenir sans t\'écrouler)</li>'
+    +'<li>Note la <b>distance exacte</b> parcourue en km (ta montre / ton tel / ton parcours)</li>'
+    +'<li>Retour au calme : 10 min de footing très lent</li>'
+    +'</ol>'
+    +'<p class="mut" style="margin:0"><b>Règle d\'or :</b> allure régulière, pas de sprint final. Si tu t\'écroules à la fin, tu es parti trop vite.</p></div>'
+    +'<div class="card"><h3>📏 Ta distance parcourue (en km)</h3>'
+    +'<input type="number" step="0.01" min="0.5" max="3" value="'+d+'" placeholder="ex: 1.4" inputmode="decimal" oninput="setTestDist(this.value)">'
+    +'<div class="mut" style="text-align:center;font-size:12px">Entre 0.5 et 3 km (rarement plus)</div></div>'
+    +(newVMA>0?'<div class="test-hero"><div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase">VMA calculée</div>'
+      +'<div class="vma-big">'+newVMA+'</div>'
+      +'<div style="font-size:14px;font-weight:600;color:var(--mut);margin-top:4px">km/h</div>'
+      +'<div style="margin-top:12px">'
+      +(currentVMA?'<span class="test-badge">VMA actuelle : '+currentVMA+' km/h</span>':'')
+      +'<span class="test-badge '+(currentVMA&&newVMA>currentVMA?'ok':currentVMA&&newVMA<currentVMA?'ko':'')+'">'
+      +(currentVMA?(newVMA>currentVMA?'📈 +'+r1(newVMA-currentVMA)+' km/h':newVMA<currentVMA?'📉 '+r1(newVMA-currentVMA)+' km/h':'➡️ Identique'):'🎯 Nouvelle VMA')
+      +'</span>'
+      +'</div>'
+      +'<button onclick="saveTestVMA()" style="margin-top:16px">Enregistrer ma VMA</button>'
+      +'</div>':'<div class="card mut" style="text-align:center;font-size:13px">Entre ta distance pour voir ta VMA calculée automatiquement.</div>')
+    +'<div class="card mut" style="font-size:12px;text-align:center">Formule : VMA = distance (km) × 10. Ex : 1.4 km en 6 min = 14 km/h.</div>';
+}
 draw();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/RunCoach/sw.js').catch(()=>{})})}
   if('serviceWorker' in navigator){
