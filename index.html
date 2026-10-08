@@ -333,4 +333,19 @@ return '<h2>Progression</h2>'+alertCard()+(p.boost?'<div class="card" style="bac
 function prof(){return '<h2>Profil</h2><div class="card"><b>'+(esc(S.user?.n)||'')+'</b><div class="mut">'+(esc(S.user?.e)||'')+'</div><p>Objectif : '+GOALS[S.form.goal]+' · '+S.plan.N+' sem.<br>VMA : '+(S.plan.vma?S.plan.vma+' km/h':'débutant')+'</p></div><div class="card mut">Tu peux modifier l\'objectif, les jours, le volume ou la date de course.</div><button onclick="go(\'lvl\')">✏️ Modifier mon plan</button><button class="alt" onclick="if(confirm(\'Tout effacer ?\')){try{localStorage.removeItem(\'rc1\')}catch(e){}location.reload()}">Effacer mes données</button>'}
 draw();
 if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('/RunCoach/sw.js').catch(()=>{})})}
+  if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/RunCoach/sw.js').then(reg => {
+      // Vérifie les mises à jour toutes les heures
+      setInterval(() => reg.update(), 60*60*1000);
+    }).catch(()=>{});
+  });
+  // Recharge la page automatiquement quand un nouveau SW prend le contrôle
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if(refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+}
 </script></body></html>
