@@ -118,7 +118,7 @@ button:not(.alt):active{box-shadow:0 2px 6px rgba(255,90,31,.2)}
 <meta name="theme-color" content="#ff5a1f">
 </head><body><div id="app"></div><nav id="nav" style="display:none"></nav>
 <script>
-  const APP_VERSION='1.6';
+  const APP_VERSION='1.7';
 (function(){
   const cachedVersion=localStorage.getItem('runcoach-version');
   if(cachedVersion&&cachedVersion!==APP_VERSION){
@@ -302,7 +302,7 @@ function launchConfetti(){const colors=['#ff5a1f','#ff8a3d','#10b981','#3b82f6',
 function toggleEditCard(){var el=document.getElementById('editCard');if(el)el.classList.toggle('acc-open')}
 function draw(){
 const a=$('app'),nav=$('nav'),f=S.form;nav.style.display='none';let h='';
-if(scr==='splash'){const hasUser=!!S.user;const hasPlan=!!(S.plan&&S.plan.sessions&&S.plan.sessions.length);const planFinished=hasPlan&&!S.plan.sessions.some(x=>x.status==='todo');let btnLabel='Commencer';let btnAction="go('auth')";if(hasUser&&hasPlan){btnLabel=planFinished?'Voir mes stats':'Reprendre mon plan';btnAction="setT('home')"}else if(hasUser){btnLabel='Créer mon plan';btnAction="go('lvl')"}h='<div class="hero"><svg class="runner" viewBox="0 0 200 180" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><g stroke-width="5" opacity=".45"><path d="M10 70h34M2 95h40M16 120h28"/></g><circle cx="122" cy="34" r="13" fill="currentColor" stroke="none"/><path d="M114 54L97 104"/><path d="M110 64L134 80L152 66"/><path d="M108 66L84 76L72 98"/><path d="M97 104L128 114L118 146"/><path d="M97 104L72 124L46 114"/><path d="M20 160h160" stroke-width="4" opacity=".35"/></svg><h1>RunCoach</h1><p class="tag2">Ton objectif devient un plan qui s\'adapte à toi.</p><div class="pts"><span>🎯 Plan sur mesure</span><span>📈 Ajusté à ton ressenti</span><span>🛟 Prudence douleur</span></div><button onclick="'+btnAction+'">'+btnLabel+'</button>'+(hasUser&&hasPlan?'<button class="alt" onclick="go(\'lvl\')" style="margin-top:8px">+ Créer un nouveau plan</button>':'')+'</div>'}
+if(scr==='splash'){const hasUser=!!S.user;const hasPlan=!!(S.plan&&S.plan.sessions&&S.plan.sessions.length);const planFinished=hasPlan&&!S.plan.sessions.some(x=>x.status==='todo');let btnLabel='Commencer';let btnAction="go('auth')";if(hasUser&&hasPlan){btnLabel=planFinished?'Voir mes stats':'Reprendre mon plan';btnAction="setT('home')"}else if(hasUser){btnLabel='Créer mon plan';btnAction="go('lvl')"}const showRestore=!hasUser;h='<div class="hero"><svg class="runner" viewBox="0 0 200 180" fill="none" stroke="currentColor" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"><g stroke-width="5" opacity=".45"><path d="M10 70h34M2 95h40M16 120h28"/></g><circle cx="122" cy="34" r="13" fill="currentColor" stroke="none"/><path d="M114 54L97 104"/><path d="M110 64L134 80L152 66"/><path d="M108 66L84 76L72 98"/><path d="M97 104L128 114L118 146"/><path d="M97 104L72 124L46 114"/><path d="M20 160h160" stroke-width="4" opacity=".35"/></svg><h1>RunCoach</h1><p class="tag2">Ton objectif devient un plan qui s\'adapte à toi.</p><div class="pts"><span>🎯 Plan sur mesure</span><span>📈 Ajusté à ton ressenti</span><span>🛟 Prudence douleur</span></div><button onclick="'+btnAction+'">'+btnLabel+'</button>'+(hasUser&&hasPlan?'<button class="alt" onclick="go(\'lvl\')" style="margin-top:8px">+ Créer un nouveau plan</button>':'')+(showRestore?'<button class="alt" onclick="importData()" style="margin-top:8px">📥 Restaurer une sauvegarde</button><p class="mut" style="font-size:12px;margin:10px 0 0">Tu avais déjà utilisé RunCoach ? Restaure ta sauvegarde pour retrouver ton plan.</p>':'')+'</div>'}
 else if(scr==='auth'){h='<h1>Connexion</h1><p class="mut">Mode local : tes données restent sur cet appareil.</p><label>Prénom</label><input id="nm"><label>Email</label><input id="em" type="email"><button onclick="S.user={n:nm.value||\'Coureur\',e:em.value};save();go(\'lvl\')">Continuer</button>'}
 else if(scr==='lvl'){h='<h2>1/4 · Ton niveau</h2>'+chips([['new','Je débute'],['ref',"J'ai une référence"]],f.lvl,'lvl')+'<p class="mut">Débutant : protocole course/marche, progression par durée et RPE.</p><button onclick="go(S.form.lvl===\'new\'?\'goal\':\'ref\')">Suivant</button>'}
 else if(scr==='ref'){if(!S.form.refs)S.form.refs=[{dist:10,h:0,m:50,s:0,date:''}];const refs=S.form.refs;const refRows=refs.map((r,i)=>'<div class="card" style="padding:12px;margin:8px 0"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:14px">Perf '+(i+1)+'</b>'+(refs.length>1?'<span onclick="delRef('+i+')" style="cursor:pointer;color:var(--ko);font-size:18px">🗑️</span>':'')+'</div><label>Distance</label><div class="chips">'+[[5,'5 km'],[10,'10 km'],[21.1,'Semi'],[42.2,'Marathon']].map(([v,l])=>'<span class="chip '+(r.dist==v?'on':'')+'" onclick="setRef('+i+',\'dist\','+v+')">'+l+'</span>').join('')+'</div><div class="row">'+[['h','h',6],['m','min',59],['s','s',59]].map(([k,l,n])=>'<div><label>'+l+'</label><select onchange="setRef('+i+',\''+k+'\',+this.value)">'+Array.from({length:n+1},(_,j)=>'<option value="'+j+'" '+(r[k]==j?'selected':'')+'>'+String(j).padStart(2,'0')+'</option>').join('')+'</select></div>').join('')+'</div><label>Date du chrono</label><input type="date" value="'+(r.date||'')+'" onchange="setRef('+i+',\'date\',this.value)"></div>').join('');const vmaMoy=level();h='<h2>2/4 · Références</h2><p class="mut">Ajoute une ou plusieurs perfs récentes. Plus tu en as, plus la VMA estimée sera fiable.</p>'+refRows+'<button class="alt" onclick="addRef()" style="margin-top:4px">+ Ajouter une perf</button><label style="margin-top:16px">Ou ta VMA connue / test VMA (km/h) — prioritaire</label><input type="number" step=".1" value="'+f.vma+'" oninput="F(\'vma\',this.value)" placeholder="ex. 15.5"><div class="card" style="background:linear-gradient(135deg,rgba(255,90,31,.06),rgba(255,138,61,.03));border-color:rgba(255,90,31,.2);text-align:center"><div class="kpi-sub">VMA estimée</div><div style="font-size:38px;font-weight:800;letter-spacing:-.03em;color:var(--ac);margin:4px 0">'+(vmaMoy||'—')+'</div><div class="mut" style="font-size:12px">'+(f.vma?'VMA manuelle saisie':refs.length+' perf'+(refs.length>1?'s':'')+' pondérée'+(refs.length>1?'s':'')+' par fraîcheur')+'</div></div><button onclick="go(\'goal\')">Suivant</button>'}
@@ -438,20 +438,48 @@ function showExportFallback(){
 }
 function importData(){
   const overlay=document.createElement('div');
-  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:99999;padding:20px;display:flex;flex-direction:column;gap:10px';
-  overlay.innerHTML='<h3 style="color:#fff;margin:0">Restaure ta sauvegarde</h3>'
-+'<p style="color:#ccc;font-size:13px;margin:0 0 8px">Colle ici le texte que tu avais copié lors de l\'export.</p>'
-+'<p style="color:#ccc;font-size:12px;margin:0 0 12px">💡 Sur iPhone : si tu avais envoyé le texte par mail, ouvre le mail et copie-le. Sinon retrouve-le dans tes Notes.</p>'
-    +'<textarea id="impTxt" placeholder="Colle ici..." style="flex:1;width:100%;font-family:monospace;font-size:11px;padding:10px;border-radius:8px;border:0;resize:none"></textarea>'
-    +'<div style="display:flex;gap:10px">'
-    +'<button id="impOk" style="flex:1;padding:14px;background:#ff5a1f;color:#fff;border:0;border-radius:12px;font-weight:600;font-size:16px">Restaurer</button>'
-    +'<button id="impCancel" style="flex:1;padding:14px;background:#fff;color:#000;border:0;border-radius:12px;font-weight:600;font-size:16px">Annuler</button>'
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;padding:20px;overflow-y:auto';
+  overlay.innerHTML='<div style="max-width:480px;margin:0 auto;background:#fff;color:#000;border-radius:16px;padding:20px">'
+    +'<h2 style="margin:0 0 6px;color:#0f1419">📥 Restaurer une sauvegarde</h2>'
+    +'<p style="font-size:13px;line-height:1.5;color:#374151;margin:0 0 14px">Tu peux soit <b>choisir ton fichier</b> de sauvegarde, soit <b>coller le texte</b> que tu avais copié.</p>'
+
+    +'<div style="background:#f0f9ff;border-left:4px solid #3b82f6;padding:12px;border-radius:8px;margin:0 0 14px">'
+    +'<b style="color:#0f1419;font-size:14px">📁 Option 1 — Choisir un fichier</b>'
+    +'<p style="font-size:12px;line-height:1.5;color:#374151;margin:6px 0 8px">Fonctionne sur Android et ordinateur. Sélectionne ton fichier <b>.json</b> de sauvegarde.</p>'
+    +'<input type="file" id="impFile" accept=".json,application/json" style="width:100%;padding:8px;font-size:12px;border:1px solid #e5e7eb;border-radius:8px;background:#fff">'
+    +'</div>'
+
+    +'<div style="background:#fff7ed;border-left:4px solid #ff5a1f;padding:12px;border-radius:8px;margin:0 0 14px">'
+    +'<b style="color:#0f1419;font-size:14px">📋 Option 2 — Coller le texte</b>'
+    +'<p style="font-size:12px;line-height:1.5;color:#374151;margin:6px 0 8px">Recommandé sur iPhone si tu avais copié le texte dans Notes ou par mail.</p>'
+    +'<textarea id="impTxt" placeholder="Colle ici le texte de ta sauvegarde..." style="width:100%;height:100px;font-family:monospace;font-size:11px;padding:10px;border-radius:8px;border:1px solid #e5e7eb;resize:none"></textarea>'
+    +'</div>'
+
+    +'<button id="impOk" style="width:100%;padding:15px;background:#ff5a1f;color:#fff;border:0;border-radius:12px;font-weight:600;font-size:16px;margin-top:6px;cursor:pointer">Restaurer</button>'
+    +'<button id="impCancel" style="width:100%;padding:15px;background:#f3f4f6;color:#0f1419;border:0;border-radius:12px;font-weight:600;font-size:16px;margin-top:8px;cursor:pointer">Annuler</button>'
     +'</div>';
   document.body.appendChild(overlay);
+
+  // Gestion du fichier sélectionné
+  let fileContent=null;
+  document.getElementById('impFile').onchange=(e)=>{
+    const f=e.target.files[0];
+    if(!f)return;
+    const reader=new FileReader();
+    reader.onload=(ev)=>{
+      fileContent=ev.target.result;
+      document.getElementById('impTxt').value=fileContent;
+    };
+    reader.readAsText(f);
+  };
+
   document.getElementById('impCancel').onclick=()=>document.body.removeChild(overlay);
+
   document.getElementById('impOk').onclick=()=>{
-    const txt=document.getElementById('impTxt').value.trim();
-    if(!txt){alert('Colle d\'abord ta sauvegarde');return}
+    // Récupère le contenu : soit le fichier, soit le textarea
+    let txt=document.getElementById('impTxt').value.trim();
+    if(!txt&&fileContent)txt=fileContent;
+    if(!txt){alert('Choisis un fichier ou colle ton texte de sauvegarde');return}
     try{
       const data=JSON.parse(txt);
       if(!data.form){alert('❌ Ce fichier ne semble pas être une sauvegarde RunCoach valide');return}
@@ -464,10 +492,10 @@ function importData(){
       location.reload();
     }catch(e){
       console.error('importData error:',e);
-      alert('❌ Erreur : le texte n\'est pas valide.\n\nDétail : '+e.message);
+      alert('❌ Erreur : le contenu n\'est pas valide.\n\nDétail : '+e.message);
     }
   };
-} 
+}
   function testVMAAllowed(){
   try{
     const p=S.plan;
