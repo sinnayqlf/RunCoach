@@ -141,7 +141,7 @@ const DUR_MAX={reprise:90,forme:120,progression:150,'10k':150,semi:180,marathon:
 const PREP={beg:{reprise:{min:6,reco:8,conf:10,chips:[6,8,10,12]},forme:{min:8,reco:10,conf:12,chips:[8,10,12,16]},progression:{min:10,reco:12,conf:16,chips:[10,12,16,20]},'10k':{min:8,reco:10,conf:12,chips:[8,10,12,16]},semi:{min:12,reco:16,conf:20,chips:[12,16,20,24]},marathon:{min:16,reco:20,conf:24,chips:[16,20,24,28]}},conf:{reprise:{min:4,reco:6,conf:8,chips:[4,6,8,10]},forme:{min:6,reco:8,conf:10,chips:[6,8,10,12]},progression:{min:8,reco:10,conf:12,chips:[8,10,12,16]},'10k':{min:6,reco:8,conf:10,chips:[6,8,10,12]},semi:{min:10,reco:12,conf:16,chips:[10,12,16,20]},marathon:{min:12,reco:16,conf:20,chips:[12,16,20,24]}}};
 const SESS_RECO={beg:{reprise:[2,3],forme:[3,3],progression:[3,4],'10k':[3,3],semi:[3,4],marathon:[4,4]},conf:{reprise:[3,4],forme:[3,4],progression:[4,5],'10k':[4,5],semi:[4,5],marathon:[5,6]}};
 let S={user:null,form:{lvl:'ref',dist:10,h:0,m:50,s:0,date:'',vma:'',vmaDate:'',testDist:'',goal:'10k',weeks:12,race:'',target:'',n:3,days:[1,3,6],km:'',refs:[{dist:10,h:0,m:50,s:0,date:''}],startOpt:'next',startDate:''},plan:null,refs:[]};
-let scr='splash',sel=null,tab='home',step=0;
+let scr='splash',sel=null,tab='home',step=0,runS=null,runWatch=null;
 try{const x=localStorage.getItem('rc1');if(x)S=JSON.parse(x)}catch(e){}
 if(!S.form.refs)S.form.refs=[{dist:10,h:0,m:50,s:0,date:''}];
 const save=()=>{try{localStorage.setItem('rc1',JSON.stringify(S))}catch(e){}};
@@ -314,6 +314,7 @@ else if(scr==='main'){if(S.plan&&S.plan.v!==16&&!S.plan.sessions.some(x=>x.statu
 else if(scr==='det'){h=detail()}
 else if(scr==='rpe'){R.ok=1;h=rpeForm()}
     else if(scr==='testVMA'){h=testVMAScreen()}
+  else if(scr==='runSession'){h=runSessionScreen()}
 if(['lvl','ref','goal','dispo'].includes(scr)){const b={lvl:S.plan?"setT('prof')":"go('auth')",ref:"go('lvl')",goal:S.form.lvl==='new'?"go('lvl')":"go('ref')",dispo:"go('goal')"}[scr];h='<button class="alt" style="width:auto;margin:0 0 6px;padding:8px 14px" onclick="'+b+'">← Retour</button>'+h}
 const prevScreen=window._lastScreen||'';const newScreen=scr+(tab?'/'+tab:'');const screenChanged=prevScreen!==newScreen;window._lastScreen=newScreen;
 a.innerHTML=h;
@@ -343,8 +344,14 @@ const stBadge={done:'<span class="pill ok">✅ Réalisée</span>',missed:'<span 
 const doneBlock=s.status==='done'?'<div class="card"><h3>📊 Ton compte-rendu</h3><div class="crit"><span>Distance réalisée</span><b>'+(s.actKm||'–')+' km</b></div><div class="crit"><span>RPE</span><b>'+s.rpe+'/10</b></div><div class="crit"><span>Douleur</span><b>'+s.pain+'/10</b></div>'+(s.hr?'<div class="crit"><span>FC moyenne</span><b>'+s.hr+' bpm</b></div>':'')+(s.actMin?'<div class="crit"><span>Durée</span><b>'+fmtDur(s.actMin)+'</b></div>':'')+'</div>':'';
 const editBlock=s.type!=='race'?'<div class="card" id="editCard"><div class="acc-head" onclick="toggleEditCard()"><span>✏️ Modifier cette séance</span><span class="acc-arrow">▾</span></div><div class="acc-body"><label>Déplacer à la date</label><input type="date" value="'+s.date+'" onchange="moveS(this.value)"><div class="row"><button class="alt" onclick="adjKm(-1)">− 1 km</button><button class="alt" onclick="adjKm(1)">+ 1 km</button></div>'+(s.status!=='todo'?'<button class="alt" onclick="resetS()" style="margin-top:10px">↺ Remettre « à faire »</button>':'')+'</div></div>':'';
 return '<button class="alt" onclick="setT(\'cal\')" style="width:auto;margin:0 0 10px;padding:8px 14px">← Retour</button><div class="det-hero" style="background:linear-gradient(135deg,'+c+'20,'+c+'08);border:1px solid '+c+'30"><div class="lbl" style="color:'+c+'">'+p.phases[s.w]+' · Semaine '+(s.w+1)+'/'+p.N+'</div><div style="display:flex;align-items:baseline;gap:12px;margin-top:10px"><div class="big" style="color:'+c+'">'+s.km+'</div><div style="font-size:18px;font-weight:600;color:var(--mut)">km</div></div><div style="font-size:17px;font-weight:700;margin-top:6px">'+TYPES[s.type]+'</div><div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><span class="dur-badge" style="background:'+c+'25;color:'+c+'">⏱️ ~'+durEst+'</span><span class="dur-badge" style="background:var(--ln);color:var(--tx)">📅 '+fd(s.date)+'</span>'+stBadge+'<div class="card"><h3>🎯 Objectif</h3><p style="margin:0">'+d.obj+'</p></div>'
-+'<div class="card"><h3>🏃 Comment faire</h3><p style="margin:0 0 10px">'+d.txt+'</p><button class="alt" onclick="var el=document.getElementById(\'abbrBlock\');el.style.display=el.style.display===\'block\'?\'none\':\'block\'" style="font-size:13px;margin-top:6px">📖 Explication des termes</button><div id="abbrBlock" style="display:none;margin-top:10px">'+explainAbbr(d.txt)+'</div></div>'+'<div class="card"><h3>📤 Exporter cette séance</h3><p class="mut" style="margin:0 0 10px">Envoie cette séance vers ta montre Garmin ou COROS.</p><button onclick="exportTCX()" style="font-size:14px">📥 Télécharger (.TCX)</button><p class="mut" style="font-size:11px;margin:8px 0 0;text-align:center">Importe ensuite sur Garmin Connect ou t.coros.com</p></div>'
-+doneBlock+editBlock+'<div class="sticky-bar">'+(s.status==='done'?'<button onclick="go(\'rpe\')">✏️ Modifier le compte-rendu</button>':'<button onclick="go(\'rpe\')" style="background:linear-gradient(135deg,'+c+','+c+'cc)">✓ Marquer comme faite</button>')+'</div>'}
++'<div class="card"><h3>🏃 Comment faire</h3><p style="margin:0 0 10px">'+d.txt+'</p><button class="alt" onclick="var el=document.getElementById(\'abbrBlock\');el.style.display=el.style.display===\'block\'?\'none\':\'block\'" style="font-size:13px;margin-top:6px">📖 Explication des termes</button><div id="abbrBlock" style="display:none;margin-top:10px">'+explainAbbr(d.txt)+'</div></div>'
++(s.status!=='done'?'<div class="card" style="background:linear-gradient(135deg,rgba(16,185,129,.08),rgba(16,185,129,.02));border-color:rgba(16,185,129,.3)"><h3>🏃 Faire la séance maintenant</h3><p class="mut" style="margin:0 0 10px">Chrono + GPS + alertes d\'allure en direct.</p><button onclick="startRun()" style="background:linear-gradient(135deg,var(--ok),#0d9668)">Démarrer la séance</button><p class="mut" style="font-size:11px;margin:8px 0 0;text-align:center">Sur iPhone, garde l\'écran allumé</p></div>':'')
++doneBlock
++editBlock
++'<div class="sticky-bar">'
++(s.status==='done'?'<button onclick="go(\'rpe\')">✏️ Modifier le compte-rendu</button>':'<button onclick="go(\'rpe\')" style="background:linear-gradient(135deg,'+c+','+c+'cc)">✓ Marquer comme faite</button>')
++'</div>';
+}
 const curS=()=>S.plan.sessions.find(x=>x.id===sel);
 function moveS(v){const s=curS();if(!v)return;s.date=v;const today=iso(new Date());if(s.status==='missed'&&v>=today)s.status='todo';else if(s.status==='todo'&&v<today)s.status='missed';save();draw()}
 function adjKm(d){const s=curS();s.km=Math.max(1,s.km+d);s.base=s.km;s.edited=true;save();draw()}
@@ -372,6 +379,172 @@ function toggleRpeHelp(el){var h=el.parentNode.querySelector('.rpeHelp');if(h)h.
   return '<div class="card" style="background:linear-gradient(135deg,rgba(59,130,246,.06),rgba(59,130,246,.02));border-color:rgba(59,130,246,.2);margin-top:8px">'
     +'<h3>📖 Explication des termes</h3>'
     +abbrs.map(a=>'<div style="padding:8px 0;border-top:1px solid var(--ln)"><b style="color:var(--ac)">'+a.k+'</b><div class="mut" style="margin-top:2px">'+a.v+'</div></div>').join('')
+    +'</div>';
+}
+  function startRun(){
+  const p=S.plan,s=p.sessions.find(x=>x.id===sel);
+  if(!s){alert('Séance introuvable');return}
+  if(!confirm('🏃 Démarrer la séance maintenant ?\n\nLe GPS va s\'activer. Garde l\'écran allumé.'))return;
+  runS={startTime:Date.now(),elapsed:0,paused:false,dist:0,lastPos:null,positions:[],lastTick:Date.now()};
+  go('runSession');
+  startGPS();
+  startTimer();
+}
+function startTimer(){
+  if(runS&&runS.timerId)clearInterval(runS.timerId);
+  if(!runS)return;
+  runS.timerId=setInterval(()=>{
+    if(!runS||runS.paused)return;
+    const now=Date.now();
+    runS.elapsed+=(now-runS.lastTick);
+    runS.lastTick=now;
+    updateRunUI();
+  },1000);
+}
+function startGPS(){
+  if(!navigator.geolocation){alert('GPS non disponible sur cet appareil');return}
+  if(runWatch!=null)navigator.geolocation.clearWatch(runWatch);
+  runWatch=navigator.geolocation.watchPosition(
+    (pos)=>{
+      if(!runS||runS.paused)return;
+      const lat=pos.coords.latitude,lng=pos.coords.longitude,acc=pos.coords.accuracy;
+      if(acc>50)return;
+      const t=Date.now();
+      if(runS.lastPos){
+        const d=haversine(runS.lastPos.lat,runS.lastPos.lng,lat,lng);
+        if(d>0.003&&d<0.2)runS.dist+=d;
+      }
+      runS.lastPos={lat,lng,t};
+      updateRunUI();
+    },
+    (err)=>{console.warn('GPS erreur:',err)},
+    {enableHighAccuracy:true,maximumAge:1000,timeout:15000}
+  );
+}
+function haversine(lat1,lon1,lat2,lon2){
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function updateRunUI(){
+  if(!runS)return;
+  const el=document.getElementById('runChrono');
+  const elD=document.getElementById('runDist');
+  const elP=document.getElementById('runPace');
+  const elAvg=document.getElementById('runAvg');
+  const elStat=document.getElementById('runStatus');
+  if(!el)return;
+  const secs=Math.floor(runS.elapsed/1000);
+  el.textContent=fmtHMS(secs);
+  elD.textContent=runS.dist.toFixed(2)+' km';
+  const p=S.plan,s=p.sessions.find(x=>x.id===sel);
+  const paceKmh=runS.elapsed>10000?runS.dist/(runS.elapsed/3600000):0;
+  const paceMin=paceKmh>0?60/paceKmh:0;
+  elP.textContent=paceKmh>0?fmtP(paceKmh)+'/km':'—';
+  const avgPace=runS.dist>0.05?runS.elapsed/60000/runS.dist:0;
+  elAvg.textContent=avgPace>0?fmtP(60/avgPace)+'/km':'—';
+  // Comparaison allure cible
+  if(s&&s.type&&p.vma){
+    const vBase=p.vma+(p.boost||0);
+    let target=null;
+    if(s.type==='easy')target=(vBase*.68+vBase*.76)/2;
+    else if(s.type==='recovery')target=(vBase*.62+vBase*.70)/2;
+    else if(s.type==='long')target=(vBase*.68+vBase*.76)/2;
+    else if(s.type==='quality')target=(vBase*.85+vBase*.88)/2;
+    else if(s.type==='quality2')target=vBase*.88;
+    if(target&&paceKmh>0){
+      const ratio=paceKmh/target;
+      if(ratio>1.15){elStat.innerHTML='⚠️ Trop rapide';elStat.style.color='var(--warn)'}
+      else if(ratio<0.85){elStat.innerHTML='🐢 Trop lent';elStat.style.color='var(--ko)'}
+      else{elStat.innerHTML='✅ Bonne allure';elStat.style.color='var(--ok)'}
+    } else {
+      elStat.innerHTML='—';
+    }
+  } else {
+    elStat.innerHTML='💡 Écoute ton RPE';
+    elStat.style.color='var(--mut)';
+  }
+}
+function togglePauseRun(){
+  if(!runS)return;
+  runS.paused=!runS.paused;
+  if(!runS.paused)runS.lastTick=Date.now();
+  updateRunUI();
+  draw();
+}
+function stopRun(){
+  if(!runS)return;
+  if(!confirm('Terminer la séance ?'))return;
+  const secs=Math.floor(runS.elapsed/1000);
+  const km=Math.round(runS.dist*10)/10;
+  const s=S.plan.sessions.find(x=>x.id===sel);
+  if(s){s.actKm=km;s.actMin=Math.round(secs/60)}
+  if(runS.timerId)clearInterval(runS.timerId);
+  if(runWatch!=null)navigator.geolocation.clearWatch(runWatch);
+  runWatch=null;
+  save();
+  runS=null;
+  go('rpe');
+}
+function cancelRun(){
+  if(!confirm('Annuler la séance en cours ?\n\nAucune donnée ne sera enregistrée.'))return;
+  if(runS&&runS.timerId)clearInterval(runS.timerId);
+  if(runWatch!=null)navigator.geolocation.clearWatch(runWatch);
+  runWatch=null;
+  runS=null;
+  go('det');
+}
+function runSessionScreen(){
+  const s=S.plan.sessions.find(x=>x.id===sel);
+  if(!s)return '<div class="card">Séance introuvable</div>';
+  if(!runS)return '<div class="card">Aucune séance en cours.<br><br><button onclick="setT(\'home\')">Retour à l\'accueil</button></div>';
+  const d=describe(s,S.plan);
+  const isPaused=runS.paused;
+  return '<div style="text-align:center;padding:10px 0">'
+    +'<div class="mut" style="font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:700">🏃 SÉANCE EN COURS</div>'
+    +'<h2 style="margin:6px 0 2px">'+TYPES[s.type]+'</h2>'
+    +'<div class="mut" style="font-size:13px;margin-bottom:18px">Objectif : '+s.km+' km</div>'
+
+    +'<div style="background:linear-gradient(135deg,rgba(255,90,31,.08),rgba(255,138,61,.03));border-radius:20px;padding:24px 16px;margin:12px 0">'
+    +'<div id="runChrono" style="font-size:48px;font-weight:800;letter-spacing:-.03em;color:var(--ac);line-height:1">00:00</div>'
+    +'<div class="mut" style="font-size:12px;margin-top:4px;font-weight:600;letter-spacing:.05em">DURÉE</div>'
+    +'</div>'
+
+    +'<div class="row" style="margin:12px 0">'
+    +'<div class="card" style="text-align:center;padding:14px 8px;margin:0">'
+    +'<div id="runDist" style="font-size:22px;font-weight:800;letter-spacing:-.02em">0.00 km</div>'
+    +'<div class="mut" style="font-size:11px">DISTANCE</div>'
+    +'</div>'
+    +'<div class="card" style="text-align:center;padding:14px 8px;margin:0">'
+    +'<div id="runPace" style="font-size:22px;font-weight:800;letter-spacing:-.02em">—</div>'
+    +'<div class="mut" style="font-size:11px">ALLURE</div>'
+    +'</div>'
+    +'</div>'
+
+    +'<div class="row" style="margin:12px 0">'
+    +'<div class="card" style="text-align:center;padding:14px 8px;margin:0">'
+    +'<div id="runAvg" style="font-size:18px;font-weight:700">—</div>'
+    +'<div class="mut" style="font-size:11px">ALLURE MOY.</div>'
+    +'</div>'
+    +'<div class="card" style="text-align:center;padding:14px 8px;margin:0">'
+    +'<div id="runStatus" style="font-size:16px;font-weight:700;color:var(--mut)">—</div>'
+    +'<div class="mut" style="font-size:11px">ÉTAT</div>'
+    +'</div>'
+    +'</div>'
+
+    +'<div class="card mut" style="font-size:12px;text-align:left;margin-top:18px">'
+    +'<b>💡 Pendant la séance :</b> '+d.txt
+    +'</div>'
+
+    +(isPaused?'<div class="card" style="background:rgba(245,158,11,.1);border-color:var(--warn);text-align:center"><b style="color:var(--warn)">⏸️ EN PAUSE</b></div>':'')
+
+    +'<button onclick="togglePauseRun()" style="margin-top:16px">'+(isPaused?'▶️ Reprendre':'⏸️ Pause')+'</button>'
+    +'<button onclick="stopRun()" style="background:linear-gradient(135deg,var(--ok),#0d9668);margin-top:8px">✅ Terminer la séance</button>'
+    +'<button class="alt" onclick="cancelRun()" style="margin-top:8px;font-size:13px">Annuler</button>'
+
+    +'<p class="mut" style="font-size:11px;margin-top:16px;line-height:1.5">📱 Sur iPhone, garde l\'écran allumé et Safari au premier plan. Le GPS peut s\'interrompre si tu changes d\'app ou éteins l\'écran.</p>'
     +'</div>';
 }
 function sub(){const s=S.plan.sessions.find(x=>x.id===sel);if(!R.ok){s.status='missed';R.ok=1;save();adaptAll();save();return setT('home')}s.status='done';s.rpe=+$('rpe').value;s.pain=+$('pain').value;s.actKm=+$('ak').value;s.actMin=+$('am').value;s.hr=+$('hr').value||null;save();adaptAll();save();setT('home')}
@@ -566,47 +739,6 @@ function importData(){
       alert('❌ Erreur : le contenu n\'est pas valide.\n\nDétail : '+e.message);
     }
   };
-}
-  function exportTCX(){
-  const p=S.plan,s=p.sessions.find(x=>x.id===sel);
-  if(!s){alert('Séance introuvable');return}
-  const d=describe(s,p);
-  const date=s.date.replace(/-/g,'');
-  const startTime=date+'T060000Z';
-  const secs=Math.round((s.km/7)*3600);
-  const tcx='<?xml version="1.0" encoding="UTF-8"?>'
-    +'<TrainingCenterDatabase xmlns="http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2">'
-    +'<Workouts><Workout Sport="Running"><Name>'+TYPES[s.type]+' '+s.km+'km</Name>'
-    +'<Segments><Segment><Name>Séance RunCoach</Name>'
-    +'<Intensity>Active</Intensity>'
-    +'<Duration>'+secs+'.0</Duration>'
-    +'</Segment></Segments>'
-    +'<Notes>'+esc(d.obj+' | '+d.txt)+'</Notes>'
-    +'</Workout></Workouts>'
-    +'<Activities><Activity Sport="Running">'
-    +'<Id>'+startTime+'</Id>'
-    +'<Lap StartTime="'+startTime+'"><TotalTimeSeconds>'+secs+'.0</TotalTimeSeconds>'
-    +'<DistanceMeters>'+(s.km*1000)+'</DistanceMeters>'
-    +'<Intensity>Active</Intensity>'
-    +'<TriggerMethod>Manual</TriggerMethod>'
-    +'</Lap>'
-    +'</Activity></Activities>'
-    +'</TrainingCenterDatabase>';
-  try{
-    const blob=new Blob([tcx],{type:'application/xml'});
-    const url=URL.createObjectURL(blob);
-    const a=document.createElement('a');
-    a.href=url;
-    a.download='runcoach-'+s.date+'-'+s.type+'.tcx';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
-    alert('✅ Fichier .TCX téléchargé !\n\nImporte-le dans :\n• Garmin Connect\n• COROS (t.coros.com)');
-  }catch(e){
-    console.error('exportTCX error:',e);
-    alert('❌ Impossible de télécharger.\n\nSur iPhone, tu peux copier le contenu manuellement.');
-  }
 }
   function testVMAAllowed(){
   try{
