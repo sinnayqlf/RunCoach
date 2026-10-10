@@ -619,7 +619,16 @@ const keyScore=keys.length?keyOk/keys.length:0;
 const recentPains=pains().slice(-3);
 const painMax=recentPains.length?Math.max(...recentPains):0;
 const painScore=painMax>=5?0:painMax>=3?.4:1;
-const prep=Math.round(clamp(regularity*40+clamp(volume,0,1)*30+keyScore*20+painScore*10,0,100));
+// Avancement = séances faites / total prévu (hors course)
+const totalAll = p.sessions.filter(x=>x.type!=='race').length;
+const doneAll = p.sessions.filter(x=>x.status==='done').length;
+const progression = totalAll ? doneAll/totalAll : 0;
+
+// Petite pondération pour garder la qualité (régularité + volume + douleur)
+const qualite = clamp(regularity*0.5 + clamp(volume,0,1)*0.3 + painScore*0.2, 0, 1);
+
+// 85 % avancement + 15 % qualité
+const prep = Math.round(clamp((progression*0.85 + qualite*0.15)*100, 0, 100));
 const vmaNow=p.vma?r1(p.vma+(p.boost||0)):null;
 const dist={'10k':10,semi:21.1,marathon:42.2}[p.goal];
 const coeff={'10k':.91,semi:.86,marathon:.81}[p.goal];
