@@ -173,6 +173,20 @@ if(s.type==='race'){const obj='Jour J : réaliser ta performance';const dist={se
 return{obj:'Séance',txt:'Voir avec ton coach'}}
 function describe(s,pl){
 if(!pl.vma)return describeDebutant(s,pl);
+    // === Séance de marche active (post-douleur) ===
+  if(s.walkSession){
+    return{
+      obj:'Récupérer en marchant, sans irriter la zone douloureuse',
+      txt:'Marche active 25 min à RPE 2–3. Marche d\'un bon pas, sans forcer. Si la douleur augmente pendant la marche, arrête-toi. Objectif : maintenir la circulation sanguine pour favoriser la guérison.'
+    };
+  }
+  // === Séance suspendue (douleur maximale) ===
+  if(s.suspended){
+    return{
+      obj:'Repos complet — ne cours pas',
+      txt:'Ta douleur est trop forte pour reprendre. Repose-toi et consulte un médecin ou un kinésithérapeute du sport avant de reprendre. Reprends le check-in quand la douleur redescend.'
+    };
+  }
 const b=s.bonus||0,v=pl.vma+(pl.boost||0),ph=pl.phases[s.w],km=s.km;
 if(s.type==='race')return{obj:'Jour J : réaliser ta performance',txt:'Échauffement 10–15\' + 3 accélérations. Pars prudemment, vise ~'+fmtP(pl.gpace)+'/km (indicatif), puis RPE contrôlé et accélère sur la fin. '+s.km+' km.'};
 const vBase=v,gp=pl.gpace&&pl.vma?pl.gpace*(v/pl.vma):0,odd=s.w%2,g=pl.goal,sp=ph==='Spécifique',tp=ph==='Affûtage';
@@ -255,7 +269,10 @@ else if(avg<=5.5&&wk.every(x=>x.status==='done'))f=1.05}
 if(miss)f=Math.min(f,.9);
 if(alertOn()){const a=wk.reduce((x,y)=>x+y.base,0),b=nx.reduce((x,y)=>x+y.base,0);f=Math.min(f,1,a/b)}
 nx.forEach(x=>{if(x.status==='todo'&&x.type!=='race'&&!x.edited)x.km=rk(x.base*f)});
-p['f'+(w+1)]=f}}
+p['f'+(w+1)]=f;
+  }
+  applyCheckinImpact();
+}
 function pains(){return S.plan?S.plan.sessions.filter(s=>s.status==='done'&&s.pain!=null).sort((a,b)=>a.date<b.date?-1:1).map(s=>s.pain):[]}
 function alertOn(){const a=pains();if(!a.length)return false;const l=a[a.length-1],pr=a.length>1?a[a.length-2]:0;return l>=5||(l>pr&&l>=3)}
   // === CHECK-IN J+1 : détection ===
@@ -316,15 +333,23 @@ function openCheckin(){
   draw();
 }
 function setCheckinPain(v){
+  window._scrollY=window.scrollY;
   S._checkinPain=+v;
   draw();
 }
 function setCheckinLoc(v){
+  window._scrollY=window.scrollY;
   S._checkinLoc=S._checkinLoc===v?'':v;
   draw();
 }
 function setCheckinSoreness(v){
+  window._scrollY=window.scrollY;
   S._checkinSoreness=S._checkinSoreness===v?'':v;
+  draw();
+}
+  function setCheckinLimp(v){
+  window._scrollY=window.scrollY;
+  S._checkinLimp=v;
   draw();
 }
 function saveCheckin(){
@@ -334,11 +359,13 @@ function saveCheckin(){
   if(p===undefined||p===null){alert('Indique ton niveau de douleur (0-10)');return}
   s.painNextDay=p;
   s.painLoc=S._checkinLoc||'';
-  s.soreness=S._checkinSoreness||'aucune';
+ s.soreness=S._checkinSoreness||'aucune';
+s.limp=S._checkinLimp===true;
   s.checkinDone=true;
   S._checkinPain=null;
   S._checkinLoc='';
   S._checkinSoreness='';
+  S._checkinLimp=null;
   save();
   adaptAll();
   save();
@@ -376,11 +403,13 @@ function checkinJ1Screen(){
     +'<div class="mut" style="font-size:13px;margin-top:4px">RPE '+s.rpe+'/10 · Douleur '+s.pain+'/10</div>'
     +'</div>'
     +'<div class="card"><h3>1. Douleur aujourd\'hui ?</h3>'
-    +'<p class="mut" style="margin:0 0 10px">Note de 0 (aucune) à 10 (très forte). Ne compte pas les courbatures normales.</p>'
-    +'<div style="text-align:center;padding:14px 0"><span style="font-size:44px;font-weight:800;color:'+painColor+';letter-spacing:-.03em">'+(pain==null?'—':pain)+'</span><span style="font-size:16px;color:var(--mut);font-weight:600"> /10</span></div>'
-    +'<input type="range" min="0" max="10" value="'+(pain==null?0:pain)+'" oninput="setCheckinPain(this.value)" style="--fill:'+(pain==null?0:pain*10)+'%;--bar:'+painColor+'">'
-    +'<div class="chips">'+[0,2,4,6,8,10].map(v=>'<span class="chip '+(pain==v?'on':'')+'" onclick="setCheckinPain('+v+')">'+v+'</span>').join('')+'</div>'
-    +'</div>'
++'<p class="mut" style="margin:0 0 10px">Note de 0 (aucune) à 10 (très forte). Ne compte pas les courbatures normales.</p>'
++'<div style="text-align:center;padding:14px 0"><span style="font-size:44px;font-weight:800;color:'+painColor+';letter-spacing:-.03em">'+(pain==null?'—':pain)+'</span><span style="font-size:16px;color:var(--mut);font-weight:600"> /10</span></div>'
++'<input type="range" min="0" max="10" value="'+(pain==null?0:pain)+'" oninput="setCheckinPain(this.value)" style="--fill:'+(pain==null?0:pain*10)+'%;--bar:'+painColor+'">'
++'<div class="chips">'+[0,2,4,6,8,10].map(v=>'<span class="chip '+(pain==v?'on':'')+'" onclick="setCheckinPain('+v+')">'+v+'</span>').join('')+'</div>'
++'<label style="margin-top:10px">As-tu une boiterie (tu marches anormalement) ?</label>'
++'<div class="chips"><span class="chip '+(S._checkinLimp===true?'on':'')+'" onclick="setCheckinLimp(true)">Oui</span><span class="chip '+(S._checkinLimp===false?'on':'')+'" onclick="setCheckinLimp(false)">Non</span></div>'
++'</div>'
     +'<div class="card"><h3>2. Où ? <span class="mut" style="font-weight:400">(optionnel)</span></h3>'
     +'<div class="chips">'+locs.map(([v,l])=>'<span class="chip '+(loc===v?'on':'')+'" onclick="setCheckinLoc(\''+v+'\')">'+l+'</span>').join('')+'</div>'
     +'</div>'
@@ -389,6 +418,79 @@ function checkinJ1Screen(){
     +'</div>'
     +'<button onclick="saveCheckin()">✅ Enregistrer</button>'
     +'<button class="alt" onclick="skipCheckin()" style="margin-top:8px">Passer</button>';
+}
+// === CHECK-IN J+1 : impact et ajustement ===
+function checkinImpact(s){
+  if(!s||!s.checkinDone)return{level:0,label:'',factor:1};
+  const p=s.painNextDay!=null?s.painNextDay:0;
+  const sore=s.soreness||'aucune';
+  // Douleur 10 OU boiterie → arrêt total
+if(p>=10||s.limp)return{level:4,label:'🔴 Douleur maximale ou boiterie — repos complet, consulte un médecin',factor:0,mode:'stop'};
+  // Douleur 7-9 → mode marche active
+  if(p>=7)return{level:3,label:'🚶 Douleur forte — mode marche active',factor:0,mode:'walk'};
+  // Douleur 5-6 → récupération
+  if(p>=5)return{level:2,label:'🟠 Douleur modérée — volume réduit de 50%',factor:.5,mode:'reduce'};
+  // Douleur 3-4 → prudence
+  if(p>=3)return{level:1,label:'🟡 Douleur légère — volume réduit de 30%',factor:.7,mode:'reduce'};
+  // Douleur 0-2 + courbatures fortes → intensité baissée
+  if(sore==='forte')return{level:1,label:'🟡 Courbatures fortes — intensité baissée',factor:1,mode:'soft'};
+  return{level:0,label:'',factor:1,mode:'normal'};
+}
+function lastCheckin(){
+  if(!S.plan||!S.plan.sessions)return null;
+  const withCheckin=S.plan.sessions.filter(s=>s.checkinDone&&s.painNextDay!=null);
+  if(!withCheckin.length)return null;
+  withCheckin.sort((a,b)=>a.date<b.date?1:-1);
+  return withCheckin[0];
+}
+function applyCheckinImpact(){
+  const last=lastCheckin();
+  if(!last)return;
+  const impact=checkinImpact(last);
+  if(impact.level===0)return;
+  const today=iso(new Date());
+  const future=S.plan.sessions.filter(s=>{
+    if(s.date<=today)return false;
+    if(s.type==='race')return false;
+    if(s.status!=='todo')return false;
+    return true;
+  });
+  if(!future.length)return;
+  future.forEach(s=>{
+    if(impact.mode==='stop'){
+      s.suspended=true;
+      s.km=0;
+    } else if(impact.mode==='walk'){
+      // Remplacer par une séance de marche active
+      s.originalType=s.type;
+      s.originalKm=s.km;
+      s.type='recovery';
+      s.km=0; // km non significatif en marche
+      s.walkSession=true;
+      s.walkDur=25;
+      s.adjusted='checkin';
+    } else if(impact.mode==='reduce'){
+      s.km=Math.max(2,Math.round(s.km*impact.factor));
+      if(s.type==='quality'||s.type==='quality2')s.type='easy';
+      s.adjusted='checkin';
+    } else if(impact.mode==='soft'){
+      if(s.type==='quality'||s.type==='quality2')s.type='easy';
+      s.adjusted='checkin';
+    }
+  });
+  save();
+}
+  // === CHECK-IN J+1 : bandeau d'invitation ===
+function checkinBanner(){
+  const s=getPendingCheckin();
+  if(!s)return '';
+  const typeC=({easy:'var(--ok)',quality:'var(--ac)',recovery:'var(--violet)',long:'var(--blue)',quality2:'var(--amber)',race:'var(--ko)'})[s.type]||'var(--ac)';
+  return '<div class="card" style="border:2px solid var(--ac);background:linear-gradient(135deg,rgba(255,90,31,.08),rgba(255,138,61,.04))" onclick="openCheckin()">'
+    +'<div class="mut" style="color:var(--ac);font-weight:700;letter-spacing:.05em;font-size:11px">🌅 CHECK-IN J+1</div>'
+    +'<h3 style="margin:6px 0 4px">Comment te sens-tu après hier ?</h3>'
+    +'<p class="mut" style="margin:0 0 10px;font-size:13px">Séance d\'hier : <b>'+TYPES[s.type]+' · '+s.km+' km</b> · RPE '+s.rpe+'/10 · Douleur '+s.pain+'/10</p>'
+    +'<div style="font-size:13px;font-weight:600;color:var(--ac)">Répondre au check-in →</div>'
+    +'</div>';
 }
 function prepScore(){
 const p=S.plan;if(!p)return null;const today=iso(new Date());
@@ -462,11 +564,11 @@ else{window.scrollTo(0,0)}}
 function tg(i){const d=S.form.days;S.form.days=d.includes(i)?d.filter(x=>x!==i):[...d,i];save();draw()}
 function alertCard(){return alertOn()?'<div class="card warn"><h3>⚠️ Douleur à surveiller</h3>Progression suspendue. Consulte un médecin ou kiné du sport avant de reprendre.</div>':''}
 function typeTag(t){return '<span class="tag t-'+t+'">'+TYPES[t]+'</span>'}
-function row(s){const st={done:'✅',missed:'⛔',todo:'○'}[s.status];let info=s.km+' km';if(s.type==='race')info=s.km+' km · course';return '<div class="s" onclick="openSess(\''+s.id+'\')"><div>'+typeTag(s.type)+fd(s.date)+'<div class="mut">'+info+'</div></div><div>'+st+'</div></div>'}
+function row(s){const st={done:'✅',missed:'⛔',todo:'○'}[s.status];let info=s.km+' km';if(s.type==='race')info=s.km+' km · course';if(s.walkSession)info='🚶 Marche active · 25 min';if(s.suspended)info='⏸️ Suspendue';let badge='';if(s.checkinDone&&s.painNextDay>=3)badge=' 🩹';if(s.adjusted==='checkin')badge=' 🔄';return '<div class="s" onclick="openSess(\''+s.id+'\')"><div>'+typeTag(s.type)+fd(s.date)+badge+'<div class="mut">'+info+'</div></div><div>'+st+'</div></div>'}
 function openSess(id){sel=id;go('det')}
 function home(){const p=S.plan;if(!p)return '<div class="card">Aucun plan chargé.</div>';const s=nextS();const w=curW();const today=iso(new Date());const totalSess=p.sessions.filter(x=>x.type!=='race').length;const doneSess=p.sessions.filter(x=>x.status==='done').length;const pct=totalSess?Math.round(doneSess/totalSess*100):0;const now=Date.now();const kmWeek=r1(p.sessions.filter(x=>x.w===w&&x.status==='done').reduce((a,x)=>a+(+x.actKm||0),0));const kmWeekPlanned=r1(p.sessions.filter(x=>x.w===w&&x.type!=='race').reduce((a,x)=>a+x.km,0));const sessWeekDone=p.sessions.filter(x=>x.w===w&&x.status==='done').length;const sessWeekTotal=p.sessions.filter(x=>x.w===w&&x.type!=='race').length;const race=p.sessions.find(x=>x.type==='race');const joursRace=race?Math.ceil((pd(race.date)-now)/864e5):null;const typeColor=t=>({easy:'var(--ok)',quality:'var(--ac)',recovery:'var(--violet)',long:'var(--blue)',quality2:'var(--amber)',race:'var(--ko)'})[t]||'var(--ac)';const R_ring=54,C=2*Math.PI*R_ring,off=C-(pct/100)*C;const ring='<svg width="140" height="140" viewBox="0 0 140 140" style="transform:rotate(-90deg)"><circle cx="70" cy="70" r="'+R_ring+'" fill="none" stroke="var(--ln)" stroke-width="10"/><circle cx="70" cy="70" r="'+R_ring+'" fill="none" stroke="url(#grad)" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+C+'" stroke-dashoffset="'+off+'" style="transition:stroke-dashoffset .6s ease"/><defs><linearGradient id="grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="var(--ac)"/><stop offset="100%" stop-color="var(--ac2)"/></linearGradient></defs></svg>';const todaySess=p.sessions.find(x=>x.date===today&&x.status==='todo');const todayBanner=todaySess?'<div class="card" style="border:2px solid var(--ac);background:linear-gradient(135deg,rgba(255,90,31,.08),rgba(255,138,61,.04))"><div class="mut" style="color:var(--ac);font-weight:700;letter-spacing:.05em;font-size:11px">🔔 AUJOURD\'HUI</div><h3 style="margin:6px 0">'+TYPES[todaySess.type]+' · '+todaySess.km+' km</h3><button onclick="openSess(\''+todaySess.id+'\')" style="margin-top:6px">C\'est parti</button></div>':'';let nextCard='';if(s){const c=typeColor(s.type);nextCard='<div class="card" style="padding:0;overflow:hidden"><div style="padding:18px 16px;background:linear-gradient(135deg,'+c+'15,'+c+'08);border-bottom:1px solid var(--ln)"><div class="mut" style="font-weight:700;letter-spacing:.05em;font-size:11px;color:'+c+'">PROCHAINE SÉANCE · '+p.phases[s.w].toUpperCase()+'</div><div style="display:flex;align-items:baseline;gap:10px;margin-top:8px"><div style="font-size:34px;font-weight:800;letter-spacing:-.03em;color:'+c+'">'+s.km+'</div><div style="font-size:16px;font-weight:600;color:var(--mut)">km</div></div><div style="font-size:15px;font-weight:600;margin-top:2px">'+TYPES[s.type]+'</div><div class="mut" style="margin-top:6px">'+fd(s.date)+'</div></div><div style="padding:14px 16px"><p class="mut" style="margin:0 0 10px">'+describe(s,p).obj+'</p><button onclick="openSess(\''+s.id+'\')" style="margin-top:0">Voir la séance</button></div></div>'}else{const totalKm=r1(p.sessions.concat(S.old||[]).filter(x=>x.status==='done').reduce((a,x)=>a+(+x.actKm||x.km||0),0));const totalSessDone=p.sessions.concat(S.old||[]).filter(x=>x.status==='done').length;const nbSem=p.N;const firstDone=p.sessions.concat(S.old||[]).filter(x=>x.status==='done').map(x=>pd(x.date).getTime());const spanD=firstDone.length?Math.round((Date.now()-Math.min(...firstDone))/864e5):0;setTimeout(()=>{if(!window._confettiDone){window._confettiDone=true;launchConfetti()}},100);nextCard='<div class="finish-hero"><div class="emoji">🏆</div><h1>Bravo !</h1><p>Tu as terminé ton plan de '+nbSem+' semaines</p></div><div class="row"><div class="card" style="text-align:center;padding:16px 8px"><div class="kpi-sub">Distance</div><div class="kpi-big">'+totalKm+'<span style="font-size:14px;color:var(--mut)"> km</span></div></div><div class="card" style="text-align:center;padding:16px 8px"><div class="kpi-sub">Séances</div><div class="kpi-big">'+totalSessDone+'</div></div><div class="card" style="text-align:center;padding:16px 8px"><div class="kpi-sub">Durée</div><div class="kpi-big">'+Math.round(spanD/7)+'<span style="font-size:14px;color:var(--mut)"> sem.</span></div></div></div><div class="card" style="text-align:center;padding:20px 16px"><p style="margin:0 0 12px;font-weight:600">Et maintenant ?</p><p class="mut" style="margin:0 0 14px">Crée un nouveau plan pour un nouvel objectif.</p><button onclick="go(\'lvl\')">🎯 Nouveau plan</button></div>'}
 let cheer='Prêt pour ta prochaine séance ?';if(pct>=100)cheer='Tu as tout donné, bravo ! 🎉';else if(pct>=75)cheer='Tu touches au but, continue !';else if(pct>=50)cheer='À mi-parcours, tu gères.';else if(pct>=25)cheer='La routine s\'installe, bien joué.';else if(pct>0)cheer='C\'est parti, premier pas fait !';else cheer='Prêt à démarrer ?';
-return alertCard()+'<div style="display:flex;align-items:center;gap:16px;margin:8px 0 16px"><div style="position:relative;flex-shrink:0;width:140px;height:140px">'+ring+'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:30px;font-weight:800;letter-spacing:-.03em">'+pct+'%</div><div class="mut" style="font-size:11px;font-weight:600;letter-spacing:.04em">PRÉPARATION</div></div></div><div style="flex:1;min-width:0"><h1 style="font-size:24px;margin:0">Salut '+(esc(S.user?.n)||'')+' 👋</h1><p class="mut" style="margin:6px 0 0">'+cheer+'</p><div class="mut" style="margin-top:8px;font-size:12px">Semaine '+(w+1)+'/'+p.N+'</div></div></div>'+todayBanner+nextCard+'<div class="row" style="margin-top:10px"><div class="card" style="text-align:center;padding:14px 8px"><div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.05em">CETTE SEMAINE</div><div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px">'+kmWeek+'<span style="font-size:13px;color:var(--mut);font-weight:600"> / '+kmWeekPlanned+'</span></div><div class="mut" style="font-size:11px">km</div></div><div class="card" style="text-align:center;padding:14px 8px"><div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.05em">SÉANCES</div><div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px">'+sessWeekDone+'<span style="font-size:13px;color:var(--mut);font-weight:600"> / '+sessWeekTotal+'</span></div><div class="mut" style="font-size:11px">complétées</div></div><div class="card" style="text-align:center;padding:14px 8px"><div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.05em">'+(joursRace!=null?'JOURS J':'TOTAL')+'</div><div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px">'+(joursRace!=null?joursRace:totalSess)+'</div><div class="mut" style="font-size:11px">'+(joursRace!=null?'avant la course':'séances')+'</div></div></div>'}
+return alertCard()+checkinBanner()+'<div style="display:flex;align-items:center;gap:16px;margin:8px 0 16px"><div style="position:relative;flex-shrink:0;width:140px;height:140px">'+ring+'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center"><div style="font-size:30px;font-weight:800;letter-spacing:-.03em">'+pct+'%</div><div class="mut" style="font-size:11px;font-weight:600;letter-spacing:.04em">PRÉPARATION</div></div></div><div style="flex:1;min-width:0"><h1 style="font-size:24px;margin:0">Salut '+(esc(S.user?.n)||'')+' 👋</h1><p class="mut" style="margin:6px 0 0">'+cheer+'</p><div class="mut" style="margin-top:8px;font-size:12px">Semaine '+(w+1)+'/'+p.N+'</div></div></div>'+todayBanner+nextCard+'<div class="row" style="margin-top:10px"><div class="card" style="text-align:center;padding:14px 8px"><div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.05em">CETTE SEMAINE</div><div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px">'+kmWeek+'<span style="font-size:13px;color:var(--mut);font-weight:600"> / '+kmWeekPlanned+'</span></div><div class="mut" style="font-size:11px">km</div></div><div class="card" style="text-align:center;padding:14px 8px"><div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.05em">SÉANCES</div><div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px">'+sessWeekDone+'<span style="font-size:13px;color:var(--mut);font-weight:600"> / '+sessWeekTotal+'</span></div><div class="mut" style="font-size:11px">complétées</div></div><div class="card" style="text-align:center;padding:14px 8px"><div class="mut" style="font-size:11px;font-weight:700;letter-spacing:.05em">'+(joursRace!=null?'JOURS J':'TOTAL')+'</div><div style="font-size:22px;font-weight:800;letter-spacing:-.02em;margin-top:4px">'+(joursRace!=null?joursRace:totalSess)+'</div><div class="mut" style="font-size:11px">'+(joursRace!=null?'avant la course':'séances')+'</div></div></div>'}
 function cal(){const p=S.plan;const wCur=curW();if(typeof window.calOpen==='undefined')window.calOpen=wCur;let h='<h2>Calendrier</h2>';h+='<p class="mut" style="margin-top:-8px">'+p.N+' semaines · '+[...new Set(p.phases)].join(' → ')+'</p>';for(let w=0;w<p.N;w++){const ss=p.sessions.filter(x=>x.w===w);const done=ss.filter(x=>x.status==='done').length;const total=ss.filter(x=>x.type!=='race').length;const kmW=r1(ss.reduce((a,x)=>a+x.km,0));const pctW=total?Math.round(done/total*100):0;const isOpen=window.calOpen===w;const isCur=w===wCur;const isPast=w<wCur;const allDone=total>0&&done===total;const cardStyle=isCur?'border:2px solid var(--ac);background:linear-gradient(135deg,rgba(255,90,31,.04),rgba(255,138,61,.02))':'';const opacity=(isPast&&allDone)?'.65':'1';const curBadge=isCur?'<span class="pill ok" style="margin-left:8px">En cours</span>':'';h+='<div class="card" style="padding:0;overflow:hidden;'+cardStyle+';opacity:'+opacity+'"><div onclick="toggleWeek('+w+')" style="padding:16px;cursor:pointer;-webkit-tap-highlight-color:transparent"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div style="flex:1;min-width:0"><div style="font-size:12px;font-weight:700;color:var(--mut);letter-spacing:.05em">SEMAINE '+(w+1)+' · '+p.phases[w].toUpperCase()+'</div><div style="font-size:18px;font-weight:800;letter-spacing:-.02em;margin-top:2px">'+kmW+' km</div><div class="mut" style="font-size:12px;margin-top:2px">'+done+'/'+total+' séances complétées'+curBadge+'</div></div><div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0"><div style="font-size:22px;color:'+(isOpen?'var(--ac)':'var(--mut)')+';transition:transform .2s;transform:rotate('+(isOpen?180:0)+'deg);line-height:1">▾</div></div></div><div class="bar" style="margin:8px 0 0;height:6px"><i style="width:'+pctW+'%;background:'+(allDone?'var(--ok)':'linear-gradient(90deg,var(--ac),var(--ac2))')+'"></i></div></div>'+(isOpen?'<div style="padding:0 16px 12px">'+ss.map(row).join('')+'</div>':'')+'</div>'}
 return h}
 function toggleWeek(w){window.calOpen=(window.calOpen===w?-1:w);window._scrollAnchorW=w;draw()}
@@ -480,11 +582,13 @@ let durEst='';
 const m=d.txt.match(/durée totale ~(\d+h\d+|\d+ min)/);
 if(m)durEst=m[1];else{const pace=!p.vma?6.5:(s.type==='quality'||s.type==='quality2'?p.vma*.9:s.type==='race'?(p.gpace||p.vma*.85):s.type==='recovery'?p.vma*.65:p.vma*.72);durEst=fmtDur(Math.round(s.km/pace*60))}
 const stBadge={done:'<span class="pill ok">✅ Réalisée</span>',missed:'<span class="pill ko">⛔ Manquée</span>',todo:'<span class="pill warn">○ À faire</span>'}[s.status];
+const checkinBlock=s.checkinDone?`<div class="card" style="background:linear-gradient(135deg,rgba(139,92,246,.06),rgba(139,92,246,.02));border-color:rgba(139,92,246,.25)"><h3>🌅 Check-in J+1</h3><div class="crit"><span>Douleur J+1</span><b>${s.painNextDay!=null?s.painNextDay+'/10':'—'}</b></div>${s.painLoc?'<div class="crit"><span>Localisation</span><b>'+s.painLoc+'</b></div>':''}${s.soreness?'<div class="crit"><span>Courbatures</span><b>'+s.soreness+'</b></div>':''}${s.limp?'<div class="crit"><span>Boiterie</span><b>Oui</b></div>':''}</div>`:'';
 const doneBlock=s.status==='done'?'<div class="card"><h3>📊 Ton compte-rendu</h3><div class="crit"><span>Distance réalisée</span><b>'+(s.actKm||'–')+' km</b></div><div class="crit"><span>RPE</span><b>'+s.rpe+'/10</b></div><div class="crit"><span>Douleur</span><b>'+s.pain+'/10</b></div>'+(s.hr?'<div class="crit"><span>FC moyenne</span><b>'+s.hr+' bpm</b></div>':'')+(s.actMin?'<div class="crit"><span>Durée</span><b>'+fmtDur(s.actMin)+'</b></div>':'')+'</div>':'';
 const editBlock=s.type!=='race'?'<div class="card" id="editCard"><div class="acc-head" onclick="toggleEditCard()"><span>✏️ Modifier cette séance</span><span class="acc-arrow">▾</span></div><div class="acc-body"><label>Déplacer à la date</label><input type="date" value="'+s.date+'" onchange="moveS(this.value)"><div class="row"><button class="alt" onclick="adjKm(-1)">− 1 km</button><button class="alt" onclick="adjKm(1)">+ 1 km</button></div>'+(s.status!=='todo'?'<button class="alt" onclick="resetS()" style="margin-top:10px">↺ Remettre « à faire »</button>':'')+'</div></div>':'';
 return '<button class="alt" onclick="setT(\'cal\')" style="width:auto;margin:0 0 10px;padding:8px 14px">← Retour</button><div class="det-hero" style="background:linear-gradient(135deg,'+c+'20,'+c+'08);border:1px solid '+c+'30"><div class="lbl" style="color:'+c+'">'+p.phases[s.w]+' · Semaine '+(s.w+1)+'/'+p.N+'</div><div style="display:flex;align-items:baseline;gap:12px;margin-top:10px"><div class="big" style="color:'+c+'">'+s.km+'</div><div style="font-size:18px;font-weight:600;color:var(--mut)">km</div></div><div style="font-size:17px;font-weight:700;margin-top:6px">'+TYPES[s.type]+'</div><div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap"><span class="dur-badge" style="background:'+c+'25;color:'+c+'">⏱️ ~'+durEst+'</span><span class="dur-badge" style="background:var(--ln);color:var(--tx)">📅 '+fd(s.date)+'</span>'+stBadge+'<div class="card"><h3>🎯 Objectif</h3><p style="margin:0">'+d.obj+'</p></div>'
 +'<div class="card"><h3>🏃 Comment faire</h3><p style="margin:0 0 10px">'+d.txt+'</p><button class="alt" onclick="var el=document.getElementById(\'abbrBlock\');el.style.display=el.style.display===\'block\'?\'none\':\'block\'" style="font-size:13px;margin-top:6px">📖 Explication des termes</button><div id="abbrBlock" style="display:none;margin-top:10px">'+explainAbbr(d.txt)+'</div></div>'
 +doneBlock
++checkinBlock
 +editBlock
 +'<div class="sticky-bar">'
 +(s.status==='done'?'<button onclick="go(\'rpe\')">✏️ Modifier le compte-rendu</button>':'<button onclick="go(\'rpe\')" style="background:linear-gradient(135deg,var(--ac),var(--ac2))">✓ Marquer comme faite</button>')
