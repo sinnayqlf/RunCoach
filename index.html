@@ -219,7 +219,7 @@ const cap={reprise:35,forme:40,progression:50,"10k":50,semi:70,marathon:90}[f.go
 const dist={'10k':10,semi:21.1,marathon:42.2}[f.goal];
 let gpace=vma?vma*({'10k':.91,semi:.86,marathon:.81}[f.goal]||.8):0;
 if(vma&&race&&f.target)gpace=dist/(+f.target/60);
-const days=[...f.days].sort((a,b)=>a-b);
+const days = [...f.days]   .map(i => (i + 1) % 7)   .sort((a,b)=>a-b);
 const n=clamp(Math.min(+f.n,days.length||+f.n),2,6);
 const slots={2:['quality','long'],3:['easy','quality','long'],4:['easy','quality','recovery','long'],5:['easy','quality','recovery','quality2','long'],6:['easy','quality','recovery','easy','quality2','long']}[n];
 const share={easy:.16,quality:.24,recovery:.09,quality2:.2};
@@ -241,7 +241,15 @@ else if(w%4==3&&w>0)vol=base*.8;
 else{base=Math.min(target,base*(w?rate:1));vol=base;pk=Math.max(pk,base)}
 plan.wk.push(r1(vol));
 slots.forEach((t,i)=>{
-const d=new Date(start);d.setDate(d.getDate()+w*7+(days[i]??i*2));d.setHours(0,0,0,0);
+  const d=new Date(start);
+  // start = lundi de la semaine 1. days[i] = jour Date.getDay() (0=Dim, 1=Lun...).
+  // On veut positionner d sur le bon jour de la semaine w.
+  // Lundi = +0, Mardi = +1, ..., Dimanche = +6
+  const dayOffset = days[i] === 0 ? 6 : days[i] - 1;   // Dimanche → 6, sinon jours-1
+  d.setDate(d.getDate() + w*7 + dayOffset);
+  d.setHours(0,0,0,0);
+  ...
+});
 let km=rk(Math.min(t==='long'?longCap:99,vol*share[t]/sum)),ty=t;
 if(raceD&&w===N-1){if((raceD-pd(isoDay(d)))/864e5<2)return;if(t==='long'){ty='easy';km=Math.min(km,5)}}
 sessions.push({id:w+'-'+i,w,date:isoDay(d),type:ty,km,base:km,status:'todo'})})}
