@@ -258,6 +258,53 @@ nx.forEach(x=>{if(x.status==='todo'&&x.type!=='race'&&!x.edited)x.km=rk(x.base*f
 p['f'+(w+1)]=f}}
 function pains(){return S.plan?S.plan.sessions.filter(s=>s.status==='done'&&s.pain!=null).sort((a,b)=>a.date<b.date?-1:1).map(s=>s.pain):[]}
 function alertOn(){const a=pains();if(!a.length)return false;const l=a[a.length-1],pr=a.length>1?a[a.length-2]:0;return l>=5||(l>pr&&l>=3)}
+  // === CHECK-IN J+1 : détection ===
+function needsCheckin(s){
+  // Un check-in est requis si :
+  // - La séance est faite (done)
+  // - RPE >= 7 OU douleur >= 3
+  // - Pas encore de check-in fait ni passé
+  if(!s||s.status!=='done')return false;
+  if(s.checkinDone||s.checkinSkipped)return false;
+  if(s.type==='race')return false;
+  const rpe=s.rpe||0;
+  const pain=s.pain||0;
+  return rpe>=7||pain>=3;
+}
+function getPendingCheckin(){
+  // Retourne la séance la plus récente qui nécessite un check-in
+  // ET dont la date est antérieure à aujourd'hui (pour qu'on soit bien à J+1)
+  if(!S.plan||!S.plan.sessions)return null;
+  const today=iso(new Date());
+  const candidates=S.plan.sessions.filter(s=>{
+    if(!needsCheckin(s))return false;
+    // La séance doit être d'hier ou avant (pas aujourd'hui)
+    return s.date<today;
+  });
+  if(!candidates.length)return null;
+  // Trie par date décroissante (la plus récente d'abord)
+  candidates.sort((a,b)=>a.date<b.date?1:-1);
+  return candidates[0];
+}
+function checkinExpired(s){
+  // Retourne true si plus de 48h se sont écoulées depuis la séance
+  if(!s||!s.date)return true;
+  const d=pd(s.date);
+  const diffH=(Date.now()-d.getTime())/3600000;
+  return diffH>48;
+}
+function autoExpireCheckins(){
+  // Marque automatiquement comme "passé" tous les check-ins de +48h
+  if(!S.plan||!S.plan.sessions)return;
+  let changed=false;
+  S.plan.sessions.forEach(s=>{
+    if(needsCheckin(s)&&checkinExpired(s)){
+      s.checkinSkipped=true;
+      changed=true;
+    }
+  });
+  if(changed)save();
+}
 const curW=()=>{const d=Math.floor((Date.now()-pd(S.plan.start))/6048e5);return clamp(d,0,S.plan.N-1)};
 const nextS=()=>S.plan.sessions.find(s=>s.status==='todo');
 function prepScore(){
@@ -327,6 +374,7 @@ if(screenChanged){a.classList.add('animate');setTimeout(()=>a.classList.remove('
 if(window._scrollY!=null){const y=window._scrollY;window._scrollY=null;window.scrollTo(0,y)}
 else if(window._scrollAnchorW!=null){const w=window._scrollAnchorW;window._scrollAnchorW=null;const cards=a.querySelectorAll('.card');let target=null;cards.forEach(c=>{if(!target&&c.textContent.includes('SEMAINE '+(w+1)+' ·'))target=c});if(target){const y=target.getBoundingClientRect().top+window.scrollY-70;window.scrollTo(0,Math.max(0,y))}else{window.scrollTo(0,0)}}
 else{window.scrollTo(0,0)}}
+  autoExpireCheckins();
 function tg(i){const d=S.form.days;S.form.days=d.includes(i)?d.filter(x=>x!==i):[...d,i];save();draw()}
 function alertCard(){return alertOn()?'<div class="card warn"><h3>⚠️ Douleur à surveiller</h3>Progression suspendue. Consulte un médecin ou kiné du sport avant de reprendre.</div>':''}
 function typeTag(t){return '<span class="tag t-'+t+'">'+TYPES[t]+'</span>'}
