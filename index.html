@@ -327,7 +327,8 @@ a.innerHTML=h;
 if(screenChanged){a.classList.add('animate');setTimeout(()=>a.classList.remove('animate'),350)}else{a.classList.remove('animate')}
 if(window._scrollY!=null){const y=window._scrollY;window._scrollY=null;window.scrollTo(0,y)}
 else if(window._scrollAnchorW!=null){const w=window._scrollAnchorW;window._scrollAnchorW=null;const cards=a.querySelectorAll('.card');let target=null;cards.forEach(c=>{if(!target&&c.textContent.includes('SEMAINE '+(w+1)+' ·'))target=c});if(target){const y=target.getBoundingClientRect().top+window.scrollY-70;window.scrollTo(0,Math.max(0,y))}else{window.scrollTo(0,0)}}
-else{window.scrollTo(0,0)}function tg(i){const d=S.form.days;S.form.days=d.includes(i)?d.filter(x=>x!==i):[...d,i];save();draw()}
+else{window.scrollTo(0,0)}}
+function tg(i){const d=S.form.days;S.form.days=d.includes(i)?d.filter(x=>x!==i):[...d,i];save();draw()}
 function alertCard(){return alertOn()?'<div class="card warn"><h3>⚠️ Douleur à surveiller</h3>Progression suspendue. Consulte un médecin ou kiné du sport avant de reprendre.</div>':''}
 function typeTag(t){return '<span class="tag t-'+t+'">'+TYPES[t]+'</span>'}
 function row(s){const st={done:'✅',missed:'⛔',todo:'○'}[s.status];let info=s.km+' km';if(s.type==='race')info=s.km+' km · course';return '<div class="s" onclick="openSess(\''+s.id+'\')"><div>'+typeTag(s.type)+fd(s.date)+'<div class="mut">'+info+'</div></div><div>'+st+'</div></div>'}
