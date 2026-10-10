@@ -307,6 +307,89 @@ function autoExpireCheckins(){
 }
 const curW=()=>{const d=Math.floor((Date.now()-pd(S.plan.start))/6048e5);return clamp(d,0,S.plan.N-1)};
 const nextS=()=>S.plan.sessions.find(s=>s.status==='todo');
+  // === CHECK-IN J+1 : écran ===
+function openCheckin(){
+  const s=getPendingCheckin();
+  if(!s)return;
+  sel=s.id;
+  scr='checkinJ1';
+  draw();
+}
+function setCheckinPain(v){
+  S._checkinPain=+v;
+  draw();
+}
+function setCheckinLoc(v){
+  S._checkinLoc=S._checkinLoc===v?'':v;
+  draw();
+}
+function setCheckinSoreness(v){
+  S._checkinSoreness=S._checkinSoreness===v?'':v;
+  draw();
+}
+function saveCheckin(){
+  const s=S.plan.sessions.find(x=>x.id===sel);
+  if(!s)return;
+  const p=S._checkinPain;
+  if(p===undefined||p===null){alert('Indique ton niveau de douleur (0-10)');return}
+  s.painNextDay=p;
+  s.painLoc=S._checkinLoc||'';
+  s.soreness=S._checkinSoreness||'aucune';
+  s.checkinDone=true;
+  S._checkinPain=null;
+  S._checkinLoc='';
+  S._checkinSoreness='';
+  save();
+  adaptAll();
+  save();
+  alert('✅ Check-in enregistré !');
+  scr='main';
+  tab='home';
+  draw();
+}
+function skipCheckin(){
+  const s=S.plan.sessions.find(x=>x.id===sel);
+  if(!s)return;
+  s.checkinSkipped=true;
+  S._checkinPain=null;
+  S._checkinLoc='';
+  S._checkinSoreness='';
+  save();
+  scr='main';
+  tab='home';
+  draw();
+}
+function checkinJ1Screen(){
+  const s=S.plan.sessions.find(x=>x.id===sel);
+  if(!s)return '<div class="card">Séance introuvable</div>';
+  const pain=S._checkinPain;
+  const loc=S._checkinLoc||'';
+  const sore=S._checkinSoreness||'';
+  const typeC=({easy:'var(--ok)',quality:'var(--ac)',recovery:'var(--violet)',long:'var(--blue)',quality2:'var(--amber)',race:'var(--ko)'})[s.type]||'var(--ac)';
+  const painColor=pain==null?'var(--mut)':pain>=5?'var(--ko)':pain>=3?'var(--warn)':'var(--ok)';
+  const locs=[['genou','🦵 Genou'],['mollet','🦵 Mollet'],['tendon','🦶 Tendon d\'Achille'],['pied','🦶 Pied'],['hanche','🦴 Hanche'],['autre','❓ Autre']];
+  const sores=[['aucune','😌 Aucune'],['legere','😐 Légères'],['forte','😣 Fortes']];
+  return '<h2>🌅 Comment te sens-tu ?</h2>'
+    +'<div class="card" style="background:linear-gradient(135deg,'+typeC+'10,'+typeC+'05);border-color:'+typeC+'30">'
+    +'<div class="mut" style="font-size:12px;font-weight:700;letter-spacing:.05em;color:'+typeC+'">SÉANCE D\'HIER</div>'
+    +'<div style="font-size:18px;font-weight:700;margin-top:4px">'+TYPES[s.type]+' · '+s.km+' km</div>'
+    +'<div class="mut" style="font-size:13px;margin-top:4px">RPE '+s.rpe+'/10 · Douleur '+s.pain+'/10</div>'
+    +'</div>'
+    +'<div class="card"><h3>1. Douleur aujourd\'hui ?</h3>'
+    +'<p class="mut" style="margin:0 0 10px">Note de 0 (aucune) à 10 (très forte). Ne compte pas les courbatures normales.</p>'
+    +'<div style="text-align:center;padding:14px 0"><span style="font-size:44px;font-weight:800;color:'+painColor+';letter-spacing:-.03em">'+(pain==null?'—':pain)+'</span><span style="font-size:16px;color:var(--mut);font-weight:600"> /10</span></div>'
+    +'<input type="range" min="0" max="10" value="'+(pain==null?0:pain)+'" oninput="setCheckinPain(this.value)" style="--fill:'+(pain==null?0:pain*10)+'%;--bar:'+painColor+'">'
+    +'<div class="chips">'+[0,2,4,6,8,10].map(v=>'<span class="chip '+(pain==v?'on':'')+'" onclick="setCheckinPain('+v+')">'+v+'</span>').join('')+'</div>'
+    +'</div>'
+    +'<div class="card"><h3>2. Où ? <span class="mut" style="font-weight:400">(optionnel)</span></h3>'
+    +'<div class="chips">'+locs.map(([v,l])=>'<span class="chip '+(loc===v?'on':'')+'" onclick="setCheckinLoc(\''+v+'\')">'+l+'</span>').join('')+'</div>'
+    +'</div>'
+    +'<div class="card"><h3>3. Courbatures ? <span class="mut" style="font-weight:400">(optionnel)</span></h3>'
+    +'<div class="chips">'+sores.map(([v,l])=>'<span class="chip '+(sore===v?'on':'')+'" onclick="setCheckinSoreness(\''+v+'\')">'+l+'</span>').join('')+'</div>'
+    +'</div>'
+    +'<button onclick="saveCheckin()">✅ Enregistrer</button>'
+    +'<button class="alt" onclick="skipCheckin()" style="margin-top:8px">Passer</button>';
+}
 function prepScore(){
 const p=S.plan;if(!p)return null;const today=iso(new Date());
 const due=p.sessions.filter(s=>s.type!=='race'&&s.date<=today);
@@ -366,6 +449,7 @@ else if(scr==='introDeb'){h='<div class="hero" style="min-height:auto;padding-to
 else if(scr==='main'){if(S.plan&&S.plan.v!==16&&!S.plan.sessions.some(x=>x.status==='done'))generate();if(S.plan&&S.plan.beg&&!S.introSeen){S.introSeen=true;save();scr='introDeb';draw();return}adaptAll();save();nav.style.display='flex';nav.innerHTML=[['home','🏠','Accueil'],['cal','📅','Calendrier'],['prog','📈','Progression'],['prof','👤','Profil']].map(([k,i,l])=>'<a class="'+(tab===k?'on':'')+'" onclick="setT(\''+k+'\')">'+i+'<br>'+l+'</a>').join('');h=tab==='home'?home():tab==='cal'?cal():tab==='prog'?prog():prof()}
 else if(scr==='det'){h=detail()}
 else if(scr==='rpe'){R.ok=1;h=rpeForm()}
+  else if(scr==='checkinJ1'){h=checkinJ1Screen()}
     else if(scr==='testVMA'){h=testVMAScreen()}
 if(['lvl','ref','goal','dispo'].includes(scr)){const b={lvl:S.plan?"setT('prof')":"go('auth')",ref:"go('lvl')",goal:S.form.lvl==='new'?"go('lvl')":"go('ref')",dispo:"go('goal')"}[scr];h='<button class="alt" style="width:auto;margin:0 0 6px;padding:8px 14px" onclick="'+b+'">← Retour</button>'+h}
 const prevScreen=window._lastScreen||'';const newScreen=scr+(tab?'/'+tab:'');const screenChanged=prevScreen!==newScreen;window._lastScreen=newScreen;
