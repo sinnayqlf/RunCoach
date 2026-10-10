@@ -244,7 +244,7 @@ slots.forEach((t,i)=>{
   const d=new Date(start);
   // start = lundi de la semaine 1. days[i] = jour Date.getDay() (0=Dim, 1=Lun...).
   // Lundi = +0, Mardi = +1, ..., Dimanche = +6
-  const dayOffset = days[i] === 0 ? 6 : days[i] - 1;
+    const dayOffset = (days[i] - start.getDay() + 7) % 7;
   d.setDate(d.getDate() + w*7 + dayOffset);
   d.setHours(0,0,0,0);
   let km=rk(Math.min(t==='long'?longCap:99,vol*share[t]/sum)),ty=t;
