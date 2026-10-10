@@ -249,7 +249,9 @@ if(raceD)sessions.push({id:'race',w:N-1,date:isoDay(raceD),type:'race',km:dist,b
 plan.beg=beg;
 plan.sessions=sessions;S.plan=plan;save()}
 function adaptAll(){
-const p=S.plan;if(!p)return;const today=iso(new Date());
+const p=S.plan;if(!p)return;
+if(!S.recovery||S.recovery.level===0)restoreAdjustedSessions();
+const today=iso(new Date());
 p.sessions.forEach(s=>{if(s.status==='todo'&&s.date<today)s.status='missed'});
 const steps={};let good=0;
 p.sessions.filter(x=>x.type==='quality'||x.type==='quality2').sort((a,b)=>a.date<b.date?-1:1).forEach(x=>{
@@ -373,9 +375,12 @@ function saveCheckin(){
   } else if(p>=3){
     S.recovery={level:1,sessionsLeft:3,since:s.date};
   } else if(S.recovery.level>0){
-    S.recovery.sessionsLeft=Math.max(0,S.recovery.sessionsLeft-1);
-    if(S.recovery.sessionsLeft===0)S.recovery={level:0,sessionsLeft:0,since:null};
+  S.recovery.sessionsLeft=Math.max(0,S.recovery.sessionsLeft-1);
+  if(S.recovery.sessionsLeft===0){
+    S.recovery={level:0,sessionsLeft:0,since:null};
+    restoreAdjustedSessions();
   }
+}
   S._checkinPain=null;
   S._checkinLoc='';
   S._checkinSoreness='';
@@ -489,16 +494,37 @@ function applyCheckinImpact(){
       s.walkSession=true;
       s.walkDur=25;
       s.adjusted='checkin';
-    } else if(impact.mode==='reduce'){
-      s.km=Math.max(2,Math.round(s.km*impact.factor));
-      if(s.type==='quality'||s.type==='quality2')s.type='easy';
-      s.adjusted='checkin';
-    } else if(impact.mode==='soft'){
-      if(s.type==='quality'||s.type==='quality2')s.type='easy';
-      s.adjusted='checkin';
-    }
+   } else if(impact.mode==='reduce'){
+  s.originalType=s.originalType||s.type;
+  s.originalKm=s.originalKm||s.km;
+  s.km=Math.max(2,Math.round(s.km*impact.factor));
+  if(s.type==='quality'||s.type==='quality2')s.type='easy';
+  s.adjusted='checkin';
+} else if(impact.mode==='soft'){
+  s.originalType=s.originalType||s.type;
+  if(s.type==='quality'||s.type==='quality2')s.type='easy';
+  s.adjusted='checkin';
+}
   });
   save();
+}
+  function restoreAdjustedSessions(){
+  if(!S.plan||!S.plan.sessions)return;
+  const today=iso(new Date());
+  let changed=false;
+  S.plan.sessions.forEach(s=>{
+    if(s.adjusted!=='checkin')return;
+    if(s.status!=='todo')return;
+    if(s.date<=today)return;
+    if(s.type==='race')return;
+    if(s.originalType!=null){s.type=s.originalType;delete s.originalType;}
+    if(s.originalKm!=null){s.km=s.originalKm;delete s.originalKm;}
+    s.walkSession=false;
+    s.suspended=false;
+    delete s.adjusted;
+    changed=true;
+  });
+  if(changed)save();
 }
   function applyRecoveryMode(){
   const today=iso(new Date());
@@ -522,11 +548,19 @@ function applyCheckinImpact(){
       s.walkSession=true;
       s.walkDur=25;
       s.adjusted='checkin';
-    } else if(lvl===2){
-      s.km=Math.max(2,Math.round(s.km*.5));
-      if(s.type==='quality'||s.type==='quality2')s.type='easy';
-      s.adjusted='checkin';
-    } else if(lvl===1){
+} else if(lvl===2){
+  s.originalType=s.originalType||s.type;
+  s.originalKm=s.originalKm||s.km;
+  s.km=Math.max(2,Math.round(s.km*.5));
+  if(s.type==='quality'||s.type==='quality2')s.type='easy';
+  s.adjusted='checkin';
+} else if(lvl===1){
+  s.originalType=s.originalType||s.type;
+  s.originalKm=s.originalKm||s.km;
+  s.km=Math.max(2,Math.round(s.km*.7));
+  if(s.type==='quality'||s.type==='quality2')s.type='easy';
+  s.adjusted='checkin';
+} else if(lvl===1){
       s.km=Math.max(2,Math.round(s.km*.7));
       if(s.type==='quality'||s.type==='quality2')s.type='easy';
       s.adjusted='checkin';
@@ -706,9 +740,12 @@ function sub(){
   s.hr=+$('hr').value||null;
   // Décrémenter le compteur de récupération si séance facile et sans douleur
   if(S.recovery.level>0&&S.recovery.level<4&&s.rpe<=7&&s.pain<3&&S.recovery.sessionsLeft>0){
-    S.recovery.sessionsLeft=Math.max(0,S.recovery.sessionsLeft-1);
-    if(S.recovery.sessionsLeft===0)S.recovery={level:0,sessionsLeft:0,since:null};
+  S.recovery.sessionsLeft=Math.max(0,S.recovery.sessionsLeft-1);
+  if(S.recovery.sessionsLeft===0){
+    S.recovery={level:0,sessionsLeft:0,since:null};
+    restoreAdjustedSessions();
   }
+}
   save();
   adaptAll();
   save();
