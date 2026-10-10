@@ -355,7 +355,7 @@ return '<button class="alt" onclick="setT(\'cal\')" style="width:auto;margin:0 0
 +doneBlock
 +editBlock
 +'<div class="sticky-bar">'
-+(s.status==='done'?'<button onclick="go(\'rpe\')">✏️ Modifier le compte-rendu</button>':'<button onclick="go(\'rpe\')" style="background:background:linear-gradient(135deg,var(--ac),var(--ac2))">✓ Marquer comme faite</button>')
++(s.status==='done'?'<button onclick="go(\'rpe\')">✏️ Modifier le compte-rendu</button>':'<button onclick="go(\'rpe\')" style="background:linear-gradient(135deg,var(--ac),var(--ac2))">✓ Marquer comme faite</button>')
 +'</div>';
 }
 const curS=()=>S.plan.sessions.find(x=>x.id===sel);
