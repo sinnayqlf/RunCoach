@@ -363,8 +363,9 @@ function saveCheckin(){
   s.painNextDay=p;
   s.painLoc=S._checkinLoc||'';
   s.soreness=S._checkinSoreness||'aucune';
-  s.limp=S._checkinLimp===true;
+   s.limp=S._checkinLimp===true;
   s.checkinDone=true;
+  s.appliedToPlan=false;   // ← AJOUTÉ ICI : nouveau check-in, pas encore appliqué au plan
   // Met à jour l'état de récupération global
   if(p>=10||s.limp){
     S.recovery={level:4,sessionsLeft:999,since:s.date};
@@ -468,11 +469,17 @@ function applyCheckinImpact(){
     applyRecoveryMode();
     return;
   }
-  // Sinon on applique l'impact du dernier check-in (comme avant)
+  // Sinon, on n'applique le check-in QUE si on ne l'a pas déjà fait
   const last=lastCheckin();
   if(!last)return;
+  // ⚠️ Si ce check-in a déjà été appliqué, on ne refait rien
+  if(last.appliedToPlan)return;
   const impact=checkinImpact(last);
-  if(impact.level===0)return;
+  if(impact.level===0){
+    last.appliedToPlan=true;
+    save();
+    return;
+  }
   const today=iso(new Date());
   const future=S.plan.sessions.filter(s=>{
     if(s.date<=today)return false;
@@ -486,26 +493,27 @@ function applyCheckinImpact(){
       s.suspended=true;
       s.km=0;
     } else if(impact.mode==='walk'){
-      // Remplacer par une séance de marche active
-      s.originalType=s.type;
-      s.originalKm=s.km;
+      s.originalType=s.originalType||s.type;
+      s.originalKm=s.originalKm||s.km;
       s.type='recovery';
-      s.km=0; // km non significatif en marche
+      s.km=0;
       s.walkSession=true;
       s.walkDur=25;
       s.adjusted='checkin';
-   } else if(impact.mode==='reduce'){
-  s.originalType=s.originalType||s.type;
-  s.originalKm=s.originalKm||s.km;
-  s.km=Math.max(2,Math.round(s.km*impact.factor));
-  if(s.type==='quality'||s.type==='quality2')s.type='easy';
-  s.adjusted='checkin';
-} else if(impact.mode==='soft'){
-  s.originalType=s.originalType||s.type;
-  if(s.type==='quality'||s.type==='quality2')s.type='easy';
-  s.adjusted='checkin';
-}
+    } else if(impact.mode==='reduce'){
+      s.originalType=s.originalType||s.type;
+      s.originalKm=s.originalKm||s.km;
+      s.km=Math.max(2,Math.round(s.km*impact.factor));
+      if(s.type==='quality'||s.type==='quality2')s.type='easy';
+      s.adjusted='checkin';
+    } else if(impact.mode==='soft'){
+      s.originalType=s.originalType||s.type;
+      if(s.type==='quality'||s.type==='quality2')s.type='easy';
+      s.adjusted='checkin';
+    }
   });
+  // ⚠️ Marque ce check-in comme traité
+  last.appliedToPlan=true;
   save();
 }
   function restoreAdjustedSessions(){
@@ -536,7 +544,9 @@ function applyCheckinImpact(){
     return true;
   });
   if(!future.length)return;
-  future.forEach(s=>{
+   future.forEach(s=>{
+    // ⚠️ Si la séance est déjà ajustée par ce mode, on ne la re-modifie pas
+    if(s.adjusted==='checkin')return;
     if(lvl>=4){
       s.suspended=true;
       s.km=0;
@@ -560,11 +570,7 @@ function applyCheckinImpact(){
   s.km=Math.max(2,Math.round(s.km*.7));
   if(s.type==='quality'||s.type==='quality2')s.type='easy';
   s.adjusted='checkin';
-} else if(lvl===1){
-      s.km=Math.max(2,Math.round(s.km*.7));
-      if(s.type==='quality'||s.type==='quality2')s.type='easy';
-      s.adjusted='checkin';
-    }
+  }
   });
   save();
 }
