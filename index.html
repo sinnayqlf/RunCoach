@@ -249,8 +249,9 @@ slots.forEach((t,i)=>{
   d.setHours(0,0,0,0);
   let km=rk(Math.min(t==='long'?longCap:99,vol*share[t]/sum)),ty=t;
   if(raceD&&w===N-1){if((raceD-pd(isoDay(d)))/864e5<2)return;if(t==='long'){ty='easy';km=Math.min(km,5)}}
-  sessions.push({id:w+'-'+i,w,date:isoDay(d),type:ty,km,base:km,status:'todo'})
+    sessions.push({id:w+'-'+i,w,date:isoDay(d),type:ty,km,base:km,status:'todo'})
 });
+}
 if(raceD)sessions.push({id:'race',w:N-1,date:isoDay(raceD),type:'race',km:dist,base:dist,status:'todo'});
 plan.beg=beg;
 plan.sessions=sessions;S.plan=plan;save()}
