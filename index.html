@@ -360,29 +360,27 @@ function saveCheckin(){
   if(p===undefined||p===null){alert('Indique ton niveau de douleur (0-10)');return}
   s.painNextDay=p;
   s.painLoc=S._checkinLoc||'';
- s.soreness=S._checkinSoreness||'aucune';
-s.limp=S._checkinLimp===true;
+  s.soreness=S._checkinSoreness||'aucune';
+  s.limp=S._checkinLimp===true;
   s.checkinDone=true;
-// Met à jour l'état de récupération global
-const p=s.painNextDay;
-if(p>=10||s.limp){
-  S.recovery={level:4,sessionsLeft:999,since:s.date};
-} else if(p>=7){
-  S.recovery={level:3,sessionsLeft:5,since:s.date};
-} else if(p>=5){
-  S.recovery={level:2,sessionsLeft:5,since:s.date};
-} else if(p>=3){
-  S.recovery={level:1,sessionsLeft:3,since:s.date};
-} else if(S.recovery.level>0){
-  // Douleur légère → on décrémente le compteur de récupération
-  S.recovery.sessionsLeft=Math.max(0,S.recovery.sessionsLeft-1);
-  if(S.recovery.sessionsLeft===0)S.recovery={level:0,sessionsLeft:0,since:null};
-}
-S._checkinPain=null;
-S._checkinLoc='';
-S._checkinSoreness='';
-S._checkinLimp=null;
-save();
+  // Met à jour l'état de récupération global
+  if(p>=10||s.limp){
+    S.recovery={level:4,sessionsLeft:999,since:s.date};
+  } else if(p>=7){
+    S.recovery={level:3,sessionsLeft:5,since:s.date};
+  } else if(p>=5){
+    S.recovery={level:2,sessionsLeft:5,since:s.date};
+  } else if(p>=3){
+    S.recovery={level:1,sessionsLeft:3,since:s.date};
+  } else if(S.recovery.level>0){
+    S.recovery.sessionsLeft=Math.max(0,S.recovery.sessionsLeft-1);
+    if(S.recovery.sessionsLeft===0)S.recovery={level:0,sessionsLeft:0,since:null};
+  }
+  S._checkinPain=null;
+  S._checkinLoc='';
+  S._checkinSoreness='';
+  S._checkinLimp=null;
+  save();
   adaptAll();
   save();
   alert('✅ Check-in enregistré !');
