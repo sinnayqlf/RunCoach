@@ -647,7 +647,7 @@ function chips(opts,cur,k){return '<div class="chips">'+opts.map(([v,l])=>'<span
 function setC(k,v){if(k==='ok'){R.ok=+v}else{S.form[k]=(k==='lvl'||k==='goal')?v:+v;if(k==='goal'){const lvl=level()===null?'beg':'conf';const cfg=PREP[lvl][v];if(cfg&&!cfg.chips.includes(+S.form.weeks))S.form.weeks=cfg.reco}if(k==='lvl'){const lvl2=v==='new'?'beg':'conf';const cfg=PREP[lvl2][S.form.goal];if(cfg&&!cfg.chips.includes(+S.form.weeks))S.form.weeks=cfg.reco}save()}draw()}
 function setStartOpt(v){S.form.startOpt=v;save();draw()}
 function onKmInput(el){const v=el.value===''?'':Math.max(0,Math.min(100,+el.value||0));S.form.km=v;save();const btnWrap=document.getElementById('genBtnWrap');if(btnWrap){const ok=v!==''&&v!=null&&!isNaN(+v);btnWrap.innerHTML=ok?'<button onclick="go(\'gen\')">Générer mon plan</button>':'<button class="alt" onclick="alert(\'Choisis ton kilométrage hebdo (même 0) avant de générer.\')" style="opacity:.6">Générer mon plan</button>'}}
-function onKmBlur(el){const v=el.value===''?'':Math.max(0,Math.min(100,+el.value||0));S.form.km=v;save();draw()}
+function onKmBlur(el){const v=el.value===''?'':Math.max(0,Math.min(100,+el.value||0));S.form.km=v;save()}
 function addRef(){
   window._scrollY=window.scrollY;
   if(!S.form.refs)S.form.refs=[];
