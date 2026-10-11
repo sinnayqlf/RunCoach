@@ -696,19 +696,27 @@ function launchConfetti(){const colors=['#ff5a1f','#ff8a3d','#10b981','#3b82f6',
 function toggleEditCard(){var el=document.getElementById('editCard');if(el)el.classList.toggle('acc-open')}
   // Fonctions d'authentification
 async function doSignUp(){
+  if(!window.firebaseFunctions){alert('Chargement en cours, réessaie dans 1 seconde…');return}
   const email = document.getElementById('authEmail').value;
   const pass = document.getElementById('authPass').value;
   if(!email || pass.length < 6){ alert('Email valide et mot de passe de 6+ caractères requis.'); return; }
   try {
-    await firebaseFunctions.createUserWithEmailAndPassword(firebaseAuth, email, pass);
+    const cred = await firebaseFunctions.createUserWithEmailAndPassword(firebaseAuth, email, pass);
+    // On demande le prénom juste après l'inscription
+    setTimeout(()=>askFirstName(cred.user.uid), 300);
   } catch(e) { alert('Erreur: ' + e.message); }
 }
 
 async function doSignIn(){
+  if(!window.firebaseFunctions){alert('Chargement en cours, réessaie dans 1 seconde…');return}
   const email = document.getElementById('authEmail').value;
   const pass = document.getElementById('authPass').value;
   try {
-    await firebaseFunctions.signInWithEmailAndPassword(firebaseAuth, email, pass);
+    const cred = await firebaseFunctions.signInWithEmailAndPassword(firebaseAuth, email, pass);
+    // Si pas de displayName (vieille inscription), on le demande
+    if(cred.user && !cred.user.displayName){
+      setTimeout(()=>askFirstName(cred.user.uid), 300);
+    }
   } catch(e) { alert('Erreur: ' + e.message); }
 }
 
@@ -717,6 +725,46 @@ async function doGoogleSignIn(){
   try {
     await firebaseFunctions.signInWithPopup(firebaseAuth, provider);
   } catch(e) { alert('Erreur: ' + e.message); }
+}
+    function askFirstName(uid){
+  const overlay=document.createElement('div');
+  overlay.id='firstNameOverlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;padding:20px;display:flex;align-items:center;justify-content:center';
+  overlay.innerHTML='<div style="max-width:400px;width:100%;background:#fff;color:#000;border-radius:16px;padding:24px;text-align:center">'
+    +'<div style="font-size:48px;margin-bottom:8px">👋</div>'
+    +'<h2 style="margin:0 0 6px;color:#0f1419;font-size:22px">Comment tu t\'appelles ?</h2>'
+    +'<p style="font-size:14px;color:#687182;margin:0 0 16px">Juste ton prénom, pour personnaliser l\'app.</p>'
+    +'<input id="firstNameInput" type="text" maxlength="20" placeholder="ex: Alex" autofocus style="width:100%;padding:13px 15px;border-radius:12px;border:1.5px solid #e8ecf2;background:#fff;color:#0f1419;font-size:16px;font-weight:500;margin:0 0 12px">'
+    +'<button id="firstNameOk" style="width:100%;padding:15px;background:linear-gradient(135deg,#ff5a1f,#ff8a3d);color:#fff;border:0;border-radius:12px;font-weight:600;font-size:16px;cursor:pointer">C\'est parti 💪</button>'
+    +'</div>';
+  document.body.appendChild(overlay);
+  const inp=document.getElementById('firstNameInput');
+  const ok=document.getElementById('firstNameOk');
+  const submit=async()=>{
+    const v=(inp.value||'').trim();
+    if(!v){
+      inp.style.borderColor='#ef4444';
+      inp.style.boxShadow='0 0 0 3px rgba(239,68,68,.15)';
+      inp.focus();
+      inp.placeholder='⚠️ Entre ton prénom';
+      return;
+    }
+    try{
+      // Met à jour le profil Firebase avec le displayName
+      if(window.firebaseAuth && firebaseAuth.currentUser){
+        await firebaseAuth.currentUser.updateProfile({displayName:v});
+      }
+    }catch(e){console.log('updateProfile:',e)}
+    // Met à jour localement
+    if(S.user) S.user.n=v;
+    else S.user={n:v,uid:uid};
+    save();
+    document.body.removeChild(overlay);
+    draw();
+  };
+  ok.onclick=submit;
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')submit()});
+  setTimeout(()=>inp.focus(),100);
 }
 
 // Surveiller l'état de connexion (attend que Firebase soit prêt)
@@ -728,12 +776,20 @@ function initFirebaseAuthListener(){
   firebaseFunctions.onAuthStateChanged(firebaseAuth, (user) => {
     if (user) {
       if(!S.user || S.user.uid !== user.uid) {
-        S.user = { n: user.displayName || user.email.split('@')[0], uid: user.uid };
+        // On garde le displayName s'il existe, sinon on met une valeur temporaire
+        // et on demande le prénom à l'utilisateur
+        S.user = { n: user.displayName || '', uid: user.uid };
         save();
         loadUserPlan(user.uid);
+        // Si pas de displayName, on demande le prénom (sauf si on vient de le faire)
+        if(!user.displayName && !S._askedFirstName){
+          S._askedFirstName = true;
+          setTimeout(()=>askFirstName(user.uid), 500);
+        }
       }
       if(scr === 'auth') { setT('home'); }
-    } else {
+        } else {
+      S._askedFirstName = false;
       if(scr !== 'splash' && scr !== 'auth') { go('auth'); }
     }
   });
