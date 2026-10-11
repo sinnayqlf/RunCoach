@@ -774,18 +774,16 @@ function initFirebaseAuthListener(){
   firebaseFunctions.onAuthStateChanged(firebaseAuth, (user) => {
     if (user) {
       if(!S.user || S.user.uid !== user.uid) {
-        // On garde le displayName s'il existe, sinon on met une valeur temporaire
-        // et on demande le prénom à l'utilisateur
         S.user = { n: user.displayName || '', uid: user.uid };
         save();
         loadUserPlan(user.uid);
-        // Si pas de displayName, on demande le prénom (sauf si on vient de le faire)
-       if(!user.displayName && !S._askedFirstName){
-  S._askedFirstName = true;
-  setTimeout(()=>askFirstName(user.uid), 800);
-}
+        if(!user.displayName && !S._askedFirstName){
+          S._askedFirstName = true;
+          setTimeout(()=>askFirstName(user.uid), 800);
+        }
+      }
       if(scr === 'auth') { setT('home'); }
-        } else {
+    } else {
       S._askedFirstName = false;
       if(scr !== 'splash' && scr !== 'auth') { go('auth'); }
     }
