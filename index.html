@@ -738,6 +738,29 @@ async function doGoogleSignIn(){
     await firebaseFunctions.signInWithPopup(firebaseAuth, provider);
   } catch(e) { alert('Erreur: ' + e.message); }
 }
+   async function resetPassword(){
+  if(!window.firebaseFunctions){alert('Chargement en cours, réessaie dans 1 seconde…');return}
+  const email = document.getElementById('authEmail').value.trim();
+  if(!email){alert('Saisis d\'abord ton email dans le champ ci-dessus, puis clique à nouveau sur "Mot de passe oublié ?"');document.getElementById('authEmail').focus();return}
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){alert('Cet email ne semble pas valide.');return}
+  try {
+    // Envoie l'email de réinitialisation Firebase
+    const { sendPasswordResetEmail } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js");
+    await sendPasswordResetEmail(firebaseAuth, email);
+    alert('✅ Email envoyé !\n\nVérifie ta boîte mail (' + email + ') et clique sur le lien pour créer un nouveau mot de passe.\n\n⚠️ Pense à regarder dans tes spams.');
+  } catch(e) {
+    console.error('resetPassword error:', e);
+    if(e.code === 'auth/user-not-found'){
+      alert('Aucun compte n\'existe avec cet email. Vérifie l\'orthographe ou crée un compte.');
+    } else if(e.code === 'auth/invalid-email'){
+      alert('Cet email n\'est pas valide.');
+    } else if(e.code === 'auth/too-many-requests'){
+      alert('Trop de tentatives. Attends quelques minutes avant de réessayer.');
+    } else {
+      alert('Erreur : ' + e.message);
+    }
+  }
+} 
 function askFirstName(uid){
   if(document.getElementById('firstNameOverlay'))return;
   const overlay=document.createElement('div');
@@ -843,9 +866,9 @@ else if(scr==='auth'){
     +'<label>Email</label><input id="authEmail" type="email" placeholder="ton@email.com">'
     +'<label>Mot de passe</label><input id="authPass" type="password" placeholder="••••••••">'
     +'<button onclick="doSignUp()" id="btnSignUp">Créer un compte</button>'
-    +'<button class="alt" onclick="doSignIn()" id="btnSignIn" style="margin-top:8px">J\'ai déjà un compte</button>'
+    +'<button class="alt" onclick="doSignIn()" id="btnSignIn" style="margin-top:8px">Se connecter</button>'
     +'<button class="alt" onclick="doGoogleSignIn()" style="margin-top:8px;background:#fff;color:#333;border:1px solid #ddd">🇬 Continuer avec Google</button>'
-    +'<p class="mut" style="font-size:12px;margin-top:16px;text-align:center">En continuant, tu acceptes que tes données soient stockées de manière sécurisée.</p>';
+    +'<p style="text-align:center;margin-top:14px"><a onclick="resetPassword()" style="color:var(--ac);cursor:pointer;font-size:13px;font-weight:600;text-decoration:underline">Mot de passe oublié ?</a></p>' +'<p class="mut" style="font-size:12px;margin-top:16px;text-align:center">En continuant, tu acceptes que tes données soient stockées de manière sécurisée.</p>';
 }
 else if(scr==='lvl'){h='<h2>1/4 · Ton niveau</h2>'+chips([['new','Je débute'],['ref',"J'ai une référence"]],f.lvl,'lvl')+'<p class="mut">Débutant : protocole course/marche, progression par durée et RPE.</p><button onclick="go(S.form.lvl===\'new\'?\'goal\':\'ref\')">Suivant</button>'}
 else if(scr==='ref'){if(!S.form.refs)S.form.refs=[{dist:10,h:0,m:50,s:0,date:''}];const refs=S.form.refs;const refRows=refs.map((r,i)=>'<div class="card" style="padding:12px;margin:8px 0"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><b style="font-size:14px">Perf '+(i+1)+'</b>'+(refs.length>1?'<span onclick="delRef('+i+')" style="cursor:pointer;color:var(--ko);font-size:18px">🗑️</span>':'')+'</div><label>Distance</label><div class="chips">'+[[5,'5 km'],[10,'10 km'],[21.1,'Semi'],[42.2,'Marathon']].map(([v,l])=>'<span class="chip '+(r.dist==v?'on':'')+'" onclick="setRef('+i+',\'dist\','+v+')">'+l+'</span>').join('')+'<div class="row">'+[['h','h',6],['m','min',59],['s','s',59]].map(([k,l,n])=>'<div><label>'+l+'</label><select onchange="setRef('+i+',\''+k+'\',+this.value)">'+Array.from({length:n+1},(_,j)=>'<option value="'+j+'" '+(r[k]==j?'selected':'')+'>'+String(j).padStart(2,'0')+'</option>').join('')+'</select></div>').join('')+'</div><label>Date du chrono <span class="mut" style="font-weight:400">(optionnel)</span></label><input type="date" value="'+(r.date||'')+'" onchange="setRef('+i+',\'date\',this.value)" onclick="if(!this.value){this.value=new Date().toISOString().slice(0,10)}"></div>').join('');const vmaMoy=level();h='<h2>2/4 · Références</h2><p class="mut">Ajoute une ou plusieurs perfs récentes. Plus tu en as, plus la VMA estimée sera fiable.</p>'+refRows+'<button class="alt" onclick="addRef()" style="margin-top:4px">+ Ajouter une perf</button><label style="margin-top:16px">Ou ta VMA connue / test VMA (km/h) — prioritaire</label><input type="number" step=".1" value="'+f.vma+'" oninput="F(\'vma\',this.value)" placeholder="ex. 15.5"><div class="card" style="background:linear-gradient(135deg,rgba(255,90,31,.06),rgba(255,138,61,.03));border-color:rgba(255,90,31,.2);text-align:center"><div class="kpi-sub">VMA estimée</div><div style="font-size:38px;font-weight:800;letter-spacing:-.03em;color:var(--ac);margin:4px 0">'+(vmaMoy||'—')+'</div><div class="mut" style="font-size:12px">'+(f.vma?'VMA manuelle saisie':refs.length+' perf'+(refs.length>1?'s':'')+' pondérée'+(refs.length>1?'s':'')+' par fraîcheur')+'</div></div><button onclick="go(\'goal\')">Suivant</button>'}
