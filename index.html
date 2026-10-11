@@ -701,9 +701,8 @@ async function doSignUp(){
   const pass = document.getElementById('authPass').value;
   if(!email || pass.length < 6){ alert('Email valide et mot de passe de 6+ caractères requis.'); return; }
   try {
-    const cred = await firebaseFunctions.createUserWithEmailAndPassword(firebaseAuth, email, pass);
-    // On demande le prénom juste après l'inscription
-    setTimeout(()=>askFirstName(cred.user.uid), 300);
+    await firebaseFunctions.createUserWithEmailAndPassword(firebaseAuth, email, pass);
+    // La popup du prénom s'ouvre automatiquement via onAuthStateChanged
   } catch(e) { alert('Erreur: ' + e.message); }
 }
 
@@ -712,11 +711,8 @@ async function doSignIn(){
   const email = document.getElementById('authEmail').value;
   const pass = document.getElementById('authPass').value;
   try {
-    const cred = await firebaseFunctions.signInWithEmailAndPassword(firebaseAuth, email, pass);
-    // Si pas de displayName (vieille inscription), on le demande
-    if(cred.user && !cred.user.displayName){
-      setTimeout(()=>askFirstName(cred.user.uid), 300);
-    }
+    await firebaseFunctions.signInWithEmailAndPassword(firebaseAuth, email, pass);
+    // La popup du prénom s'ouvre automatiquement via onAuthStateChanged
   } catch(e) { alert('Erreur: ' + e.message); }
 }
 
@@ -727,6 +723,8 @@ async function doGoogleSignIn(){
   } catch(e) { alert('Erreur: ' + e.message); }
 }
     function askFirstName(uid){
+  // ⚠️ Anti-doublon : si la popup existe déjà, on ne la recrée pas
+  if(document.getElementById('firstNameOverlay'))return;
   const overlay=document.createElement('div');
   overlay.id='firstNameOverlay';
   overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;padding:20px;display:flex;align-items:center;justify-content:center';
@@ -782,11 +780,10 @@ function initFirebaseAuthListener(){
         save();
         loadUserPlan(user.uid);
         // Si pas de displayName, on demande le prénom (sauf si on vient de le faire)
-        if(!user.displayName && !S._askedFirstName){
-          S._askedFirstName = true;
-          setTimeout(()=>askFirstName(user.uid), 500);
-        }
-      }
+       if(!user.displayName && !S._askedFirstName){
+  S._askedFirstName = true;
+  setTimeout(()=>askFirstName(user.uid), 800);
+}
       if(scr === 'auth') { setT('home'); }
         } else {
       S._askedFirstName = false;
