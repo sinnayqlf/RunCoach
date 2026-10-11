@@ -719,23 +719,26 @@ async function doGoogleSignIn(){
   } catch(e) { alert('Erreur: ' + e.message); }
 }
 
-// Surveiller l'état de connexion
-firebaseFunctions.onAuthStateChanged(firebaseAuth, (user) => {
-  if (user) {
-    // L'utilisateur est connecté
-    if(!S.user || S.user.uid !== user.uid) {
-      S.user = { n: user.displayName || user.email.split('@')[0], uid: user.uid };
-      save();
-      // On charge ses données depuis Firestore
-      loadUserPlan(user.uid);
-    }
-    // Si on est sur l'écran d'auth, on redirige
-    if(scr === 'auth') { setT('home'); }
-  } else {
-    // Déconnecté
-    if(scr !== 'splash' && scr !== 'auth') { go('auth'); }
+// Surveiller l'état de connexion (attend que Firebase soit prêt)
+function initFirebaseAuthListener(){
+  if(!window.firebaseFunctions || !window.firebaseAuth){
+    setTimeout(initFirebaseAuthListener, 100);
+    return;
   }
-});
+  firebaseFunctions.onAuthStateChanged(firebaseAuth, (user) => {
+    if (user) {
+      if(!S.user || S.user.uid !== user.uid) {
+        S.user = { n: user.displayName || user.email.split('@')[0], uid: user.uid };
+        save();
+        loadUserPlan(user.uid);
+      }
+      if(scr === 'auth') { setT('home'); }
+    } else {
+      if(scr !== 'splash' && scr !== 'auth') { go('auth'); }
+    }
+  });
+}
+initFirebaseAuthListener();
 
 // Charger le plan depuis Firestore
 async function loadUserPlan(uid) {
