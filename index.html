@@ -190,13 +190,71 @@ function vmaFromRef(km,min,ageW){const t=min,v=km*1000/t;const pct=.8+.1894393*M
 function level(){const f=S.form;if(f.lvl==='new')return null;if(f.vma)return +f.vma;const refs=f.refs&&f.refs.length?f.refs:[];if(!refs.length)return null;const now=Date.now();let sumW=0,sumV=0;refs.forEach(r=>{const min=r.h*60+r.m+r.s/60;if(!min)return;const ageW=r.date?Math.max(0,(now-new Date(r.date))/6048e5):0;const vma=vmaFromRef(r.dist,min,ageW);const w=Math.max(.5,1-Math.max(0,ageW-30)/300);sumW+=w;sumV+=vma*w});return sumW?r1(sumV/sumW):null}
 const P=(vma,a,b)=>fmtP(vma*b)+'–'+fmtP(vma*a)+'/km';
 function describeDebutant(s,pl){const w=s.w,ph=pl.phases[w],goal=pl.goal;const isRace=['10k','semi','marathon'].includes(goal);const sw=w+1;
-if(s.type==='easy'){const obj='Construire la base aérobie sans se brûler';let t;if(sw<=4){const dAlt=Math.max(20,s.km*6.5);const dTot=dAlt+5;t='Échauff. 5\' marche + alternance 3\' course / 1\' marche pendant '+fmtDur(dAlt)+' (total ~'+fmtDur(dTot)+'), RPE 3–4'}else if(sw<=8){const dAlt=Math.max(25,s.km*6.5);const dTot=dAlt+5;t='Échauff. 5\' marche + alternance 5\' course / 1\' marche pendant '+fmtDur(dAlt)+' (total ~'+fmtDur(dTot)+'), RPE 3–4'}else{const dAlt=Math.max(30,s.km*6.5);const dTot=dAlt+5;t='Échauff. 5\' marche + footing continu '+fmtDur(dAlt)+' (total ~'+fmtDur(dTot)+', pauses marche si besoin), RPE 3–4'}return{obj,txt:t}}
-if(s.type==='recovery'){return{obj:'Récupérer en bougeant, favoriser l\'assimilation',txt:'Marche active 5\' + alternance 2\' course très lente / 2\' marche, durée '+fmtDur(Math.max(20,s.km*6.5))+', RPE 2–3'}}
-if(s.type==='long'){const obj=isRace?'Habituer le corps à durer (préparation course)':'Habituer le corps à durer';let t;const durBase=Math.max(30,s.km*6.5);if(sw<=4)t='Sortie longue '+fmtDur(durBase)+' en alternance 4\' course / 1\' marche, RPE 4';else if(sw<=8)t='Sortie longue '+fmtDur(durBase)+' en alternance 8\' course / 2\' marche, RPE 4';else t='Sortie longue '+fmtDur(durBase)+' en continu (marche si besoin), RPE 4';return{obj,txt:t}}
-if(s.type==='quality'){const obj=ph==='Spécifique'?'Travailler l\'allure de course en fractionné':ph==='Affûtage'?'Garder le rythme en réduisant le volume':'Développer la vitesse et l\'aisance de course';const durTrav=Math.max(20,s.km*6.5);const ech='Échauff. 10\' marche/course lente';const rc='RC 5\' marche';let bloc='';if(ph==='Affûtage')bloc='2 × 5\' à allure course / 2\' marche';else if(ph==='Spécifique'&&isRace){const nBloc=sw%2===0?3:2;bloc=nBloc+' × 8\' à allure course / 2\' marche'}else{if(sw<=3)bloc='4 × 2\' course soutenue / 2\' marche';else if(sw<=6)bloc='5 × 2\' course soutenue / 2\' marche';else if(sw<=9)bloc='6 × 2\' course soutenue / 1\'30 marche';else if(sw<=12)bloc='4 × 5\' course soutenue / 2\' marche';else bloc='5 × 5\' course soutenue / 2\' marche'}return{obj,txt:ech+' + '+bloc+' + '+rc+' — durée totale ~'+fmtDur(durTrav)+', RPE 5–6 sur les blocs'}}
-if(s.type==='quality2'){return{obj:'Économie de course et technique',txt:'Échauff. 10\' marche/course lente + éducatifs + 6 × 20\'\' de foulée relâchée / 40\'\' marche + RC 5\' — RPE 4–5'}}
-if(s.type==='race'){const obj='Jour J : réaliser ta performance';const dist={semi:'21,1 km',marathon:'42,2 km','10k':'10 km'}[goal]||'la course';return{obj,txt:dist+' en course/marche. Pars prudemment, cours à ton rythme, marche si besoin. RPE 5–6 sur la première moitié, puis ajuste.'}}
-return{obj:'Séance',txt:'Voir avec ton coach'}}
+
+if(s.type==='easy'){
+  const obj='Construire la base aérobie sans se brûler';
+  let t;
+  if(sw<=4){
+    const dAlt=Math.max(20,s.km*6.5),dTot=dAlt+5;
+    t='Échauff. 5\' marche + alternance 3\' course / 1\' marche pendant '+fmtDur(dAlt)+' (total ~'+fmtDur(dTot)+'), RPE 3–4';
+  } else if(sw<=8){
+    const dAlt=Math.max(25,s.km*6.5),dTot=dAlt+5;
+    t='Échauff. 5\' marche + alternance 5\' course / 1\' marche pendant '+fmtDur(dAlt)+' (total ~'+fmtDur(dTot)+'), RPE 3–4';
+  } else {
+    const dAlt=Math.max(30,s.km*6.5),dTot=dAlt+5;
+    t='Échauff. 5\' marche + footing continu '+fmtDur(dAlt)+' (total ~'+fmtDur(dTot)+', pauses marche si besoin), RPE 3–4';
+  }
+  return{obj,txt:t};
+}
+
+if(s.type==='recovery'){
+  const dAlt=Math.max(20,s.km*6.5),dTot=dAlt+5;
+  return{obj:'Récupérer en bougeant, favoriser l\'assimilation',txt:'Échauff. 5\' marche + alternance 2\' course très lente / 2\' marche pendant '+fmtDur(dAlt)+' (total ~'+fmtDur(dTot)+'), RPE 2–3'};
+}
+
+if(s.type==='long'){
+  const obj=isRace?'Habituer le corps à durer (préparation course)':'Habituer le corps à durer';
+  let t;
+  const durBase=Math.max(30,s.km*6.5),dTot=durBase+5;
+  if(sw<=4)t='Échauff. 5\' marche + sortie longue '+fmtDur(durBase)+' en alternance 4\' course / 1\' marche (total ~'+fmtDur(dTot)+'), RPE 4';
+  else if(sw<=8)t='Échauff. 5\' marche + sortie longue '+fmtDur(durBase)+' en alternance 8\' course / 2\' marche (total ~'+fmtDur(dTot)+'), RPE 4';
+  else t='Échauff. 5\' marche + sortie longue '+fmtDur(durBase)+' en continu (total ~'+fmtDur(dTot)+', marche si besoin), RPE 4';
+  return{obj,txt:t};
+}
+
+if(s.type==='quality'){
+  const obj=ph==='Spécifique'?'Travailler l\'allure de course en fractionné':ph==='Affûtage'?'Garder le rythme en réduisant le volume':'Développer la vitesse et l\'aisance de course';
+  const durTrav=Math.max(20,s.km*6.5);
+  const dTot=durTrav+15; // 10' échauff + 5' RC
+  const ech='Échauff. 10\' marche/course lente';
+  const rc='RC 5\' marche';
+  let bloc='';
+  if(ph==='Affûtage')bloc='2 × 5\' à allure course / 2\' marche';
+  else if(ph==='Spécifique'&&isRace){const nBloc=sw%2===0?3:2;bloc=nBloc+' × 8\' à allure course / 2\' marche'}
+  else{
+    if(sw<=3)bloc='4 × 2\' course soutenue / 2\' marche';
+    else if(sw<=6)bloc='5 × 2\' course soutenue / 2\' marche';
+    else if(sw<=9)bloc='6 × 2\' course soutenue / 1\'30 marche';
+    else if(sw<=12)bloc='4 × 5\' course soutenue / 2\' marche';
+    else bloc='5 × 5\' course soutenue / 2\' marche';
+  }
+  return{obj,txt:ech+' + '+bloc+' + '+rc+' (total ~'+fmtDur(dTot)+'), RPE 5–6 sur les blocs'};
+}
+
+if(s.type==='quality2'){
+  // 10' échauff + 6 × (20'' + 40'') = 6 min + 5' RC = ~21 min
+  const dTot=Math.max(20,s.km*6.5)+15;
+  return{obj:'Économie de course et technique',txt:'Échauff. 10\' marche/course lente + éducatifs + 6 × 20\'\' de foulée relâchée / 40\'\' marche + RC 5\' (total ~'+fmtDur(dTot)+'), RPE 4–5'};
+}
+
+if(s.type==='race'){
+  const obj='Jour J : réaliser ta performance';
+  const dist={semi:'21,1 km',marathon:'42,2 km','10k':'10 km'}[goal]||'la course';
+  return{obj,txt:dist+' en course/marche. Pars prudemment, cours à ton rythme, marche si besoin. RPE 5–6 sur la première moitié, puis ajuste.'};
+}
+
+return{obj:'Séance',txt:'Voir avec ton coach'};
+}
 function describe(s,pl){
 if(!pl.vma)return describeDebutant(s,pl);
     // === Séance de marche active (post-douleur) ===
