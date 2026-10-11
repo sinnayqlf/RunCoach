@@ -1,4 +1,4 @@
-const CACHE_NAME = "runcoach-v11";
+const CACHE_NAME = "runcoach-v12";
 const urlsToCache = ["/RunCoach/", "/RunCoach/index.html"];
 
 self.addEventListener("install", event => {
