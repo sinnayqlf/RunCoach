@@ -112,7 +112,16 @@ button:not(.alt):active{box-shadow:0 2px 6px rgba(255,90,31,.2)}
 .test-badge.ok{background:rgba(16,185,129,.15);color:var(--ok)}
 .test-badge.ko{background:rgba(245,158,11,.15);color:var(--warn)}
 .locked{text-align:center;padding:30px 16px}
-.locked .emoji{font-size:56px;line-height:1;margin-bottom:10px;display:block}
+.locked .emoji{font-size:56px;line-height:1em;margin-bottom:10px;display:block}
+.cookie-banner{position:fixed;left:0;right:0;bottom:0;z-index:100000;background:var(--card);border-top:1px solid var(--ln);box-shadow:0 -4px 20px rgba(0,0,0,.08);padding:16px 18px calc(16px + env(safe-area-inset-bottom,0px));max-width:480px;margin:0 auto;animation:slideUp .3s ease}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.cookie-banner h3{margin:0 0 6px;font-size:15px;font-weight:700}
+.cookie-banner p{margin:0 0 12px;font-size:13px;color:var(--mut);line-height:1.5}
+.cookie-banner a{color:var(--ac);text-decoration:underline}
+.cookie-btns{display:flex;gap:8px}
+.cookie-btns button{margin-top:0;padding:12px;font-size:14px}
+.cookie-btns button.alt{flex:1}
+.cookie-btns button:not(.alt){flex:1.2}
 </style>
 <link rel="manifest" href="/RunCoach/manifest.json">
 <meta name="theme-color" content="#ff5a1f"></head><body><div id="app"></div><nav id="nav" style="display:none"></nav>
@@ -143,6 +152,32 @@ button:not(.alt):active{box-shadow:0 2px 6px rgba(255,90,31,.2)}
 </script>
   <script>
   const APP_VERSION='2.8';
+    // --- Consentement cookies ---
+function cookieChoice(){return localStorage.getItem('rc-cookie-consent')}
+function showCookieBanner(){
+  if(cookieChoice())return; // déjà choisi
+  if(document.getElementById('cookieBanner'))return;
+  const b=document.createElement('div');
+  b.id='cookieBanner';
+  b.className='cookie-banner';
+  b.innerHTML='<h3>🍪 Cookies</h3>'
+    +'<p>On utilise des cookies pour mesurer l\'usage de l\'app et l\'améliorer. Vous pouvez accepter ou refuser. <a href="privacy.html" target="_blank">En savoir plus</a></p>'
+    +'<div class="cookie-btns">'
+    +'<button class="alt" onclick="setCookieChoice(\'refused\')">Refuser</button>'
+    +'<button onclick="setCookieChoice(\'accepted\')">Accepter</button>'
+    +'</div>';
+  document.body.appendChild(b);
+}
+function setCookieChoice(v){
+  localStorage.setItem('rc-cookie-consent',v);
+  const b=document.getElementById('cookieBanner');
+  if(b)b.remove();
+  // Étape 3 : on rechargera Analytics ici si v==='accepted'
+}
+function resetCookieChoice(){
+  localStorage.removeItem('rc-cookie-consent');
+  location.reload();
+}
 (function(){
   const cachedVersion=localStorage.getItem('runcoach-version');
   if(cachedVersion&&cachedVersion!==APP_VERSION){
@@ -1229,7 +1264,9 @@ return '<button class="alt" onclick="setT(\'prof\')" style="width:auto;margin:0 
     +'<div id="testVMAResult">'+testVMAResultHTML(d)+'</div>'
     +'<div class="card mut" style="font-size:12px;text-align:center">Formule : VMA = distance (km) × 10. Ex : 1.4 km en 6 min = 14 km/h.</div>';
 }
+    showCookieBanner();
 draw();
+  
 if('serviceWorker' in navigator){
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/RunCoach/sw.js').then(reg => {
