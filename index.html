@@ -129,7 +129,6 @@ button:not(.alt):active{box-shadow:0 2px 6px rgba(255,90,31,.2)}
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-  import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAzr3x1cuRGH8Oc9GK_psO-Kpoasdlhi5o",
@@ -142,9 +141,9 @@ button:not(.alt):active{box-shadow:0 2px 6px rgba(255,90,31,.2)}
   };
 
   const app = initializeApp(firebaseConfig);
+  window.firebaseApp = app;
   const auth = getAuth(app);
   const db = getFirestore(app);
-  const analytics = getAnalytics(app);
 
   window.firebaseAuth = auth;
   window.firebaseDb = db;
@@ -172,7 +171,16 @@ function setCookieChoice(v){
   localStorage.setItem('rc-cookie-consent',v);
   const b=document.getElementById('cookieBanner');
   if(b)b.remove();
-  // Étape 3 : on rechargera Analytics ici si v==='accepted'
+  if(v==='accepted')loadAnalytics();
+}
+async function loadAnalytics(){
+  if(window._analyticsLoaded)return;
+  window._analyticsLoaded=true;
+  try{
+    const { getAnalytics } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics.js");
+    getAnalytics(window.firebaseApp);
+    console.log('[Analytics] chargé après consentement');
+  }catch(e){console.log('[Analytics] erreur:',e)}
 }
 function resetCookieChoice(){
   localStorage.removeItem('rc-cookie-consent');
@@ -1049,6 +1057,7 @@ function prof(){
     +'<div class="card mut">Tu peux modifier l\'objectif, les jours, le volume ou la date de course.</div>'
     +'<button onclick="go(\'lvl\')">✏️ Modifier mon plan</button>'
     +'<button class="alt" onclick="askFirstName(S.user&&S.user.uid)" style="margin-top:8px">✏️ Modifier mon prénom</button>'
+    +'<button class="alt" onclick="resetCookieChoice()" style="margin-top:8px">🍪 Gérer mes cookies</button>'
     +'<button class="alt" onclick="window.open(\'privacy.html\',\'_blank\')" style="margin-top:8px">🔒 Politique de confidentialité</button>'
     +'<button class="alt" onclick="logout()" style="margin-top:8px">🚪 Se déconnecter</button>'
     +'<button class="alt" onclick="deleteAll()" style="margin-top:8px;color:var(--ko);border-color:var(--ko)">🗑️ Tout supprimer</button>';
@@ -1264,7 +1273,8 @@ return '<button class="alt" onclick="setT(\'prof\')" style="width:auto;margin:0 
     +'<div id="testVMAResult">'+testVMAResultHTML(d)+'</div>'
     +'<div class="card mut" style="font-size:12px;text-align:center">Formule : VMA = distance (km) × 10. Ex : 1.4 km en 6 min = 14 km/h.</div>';
 }
-    showCookieBanner();
+   showCookieBanner();
+if(cookieChoice()==='accepted')loadAnalytics();
 draw();
   
 if('serviceWorker' in navigator){
